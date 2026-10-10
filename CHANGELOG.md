@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.6.1] — 2026-10-10
+
+### Security
+
+- **ERC-4626** — internal audit: reject zero asset; revert on zero-share / zero-asset dust; revert if asset pull shortfalls (fee-on-transfer); `maxWithdraw` follows `maxRedeem` ([#61](https://github.com/jose-compu/curated-erc/pull/61))
+
 ## [0.6.0] — 2026-10-10
 
 ### Added
