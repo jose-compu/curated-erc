@@ -4,7 +4,7 @@
 
 # Curated ERC
 
-> v0.5.1
+> v0.6.0
 
 Canonical implementations of ERCs with real on-chain traction. Foundry-native, Solidity-tested.
 
