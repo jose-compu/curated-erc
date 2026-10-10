@@ -18,8 +18,21 @@ import {IERC4626} from "./IERC4626.sol";
  * donation. Deposit and mint round shares down; withdraw and redeem round
  * shares or assets in the vault's favor.
  *
+ * SECURITY HARDENING (v0.6.1 internal audit):
+ * - Reject `address(0)` as the underlying asset.
+ * - Revert when a non-zero deposit/withdraw would mint or burn zero shares, and
+ *   when a non-zero mint/redeem would move zero assets (Solmate-style dust
+ *   protection; prevents silent donation of assets or shares).
+ * - `{_deposit}` measures the asset balance delta and reverts on shortfall so
+ *   fee-on-transfer tokens cannot insolvent the vault.
+ * - ReentrancyGuard on all mutative entry points. Transfer-then-mint matches
+ *   the ERC-777 `tokensToSend` ordering used by OpenZeppelin.
+ * - `{maxWithdraw}` is derived from `{maxRedeem}` so a subclass cap on redeem
+ *   cannot be bypassed via withdraw.
+ *
  * ERC-2612 permit is left to subclasses. Fee-on-transfer and rebasing assets
- * are unsupported and will desynchronize `totalAssets` from true balances.
+ * remain unsupported (they now revert rather than desynchronize balances).
+ * Prefer `_decimalsOffset() >= 3` and a non-trivial seed deposit on empty vaults.
  *
  * Subclasses set ERC-20 name/symbol via {ERC20} and may override
  * {_decimalsOffset}, {totalAssets}, {_deposit}, and {_withdraw}.
@@ -43,11 +56,26 @@ abstract contract ERC4626 is ERC20, ReentrancyGuard, IERC4626 {
     /// @dev Redeem exceeds {maxRedeem} for `owner`.
     error ERC4626ExceededMaxRedeem(address owner, uint256 shares, uint256 maxShares);
 
+    /// @dev Underlying asset is the zero address.
+    error ERC4626InvalidAsset(address asset);
+
+    /// @dev Non-zero assets would mint or burn zero shares.
+    error ERC4626ZeroShares();
+
+    /// @dev Non-zero shares would deposit or withdraw zero assets.
+    error ERC4626ZeroAssets();
+
+    /// @dev Asset transfer credited `received` instead of the required `expected`.
+    error ERC4626AssetTransferMismatch(uint256 expected, uint256 received);
+
     /**
      * @dev Sets the underlying asset. Share `decimals` become asset decimals plus {_decimalsOffset}.
      * If `asset_` has no `decimals()`, 18 is assumed.
      */
     constructor(IERC20 asset_) {
+        if (address(asset_) == address(0)) {
+            revert ERC4626InvalidAsset(address(0));
+        }
         (bool ok, uint8 assetDecimals) = _tryGetAssetDecimals(asset_);
         _underlyingDecimals = ok ? assetDecimals : 18;
         _asset = asset_;
@@ -90,7 +118,7 @@ abstract contract ERC4626 is ERC20, ReentrancyGuard, IERC4626 {
 
     /// @inheritdoc IERC4626
     function maxWithdraw(address owner) public view virtual returns (uint256) {
-        return _convertToAssets(balanceOf(owner), Math.Rounding.Floor);
+        return _convertToAssets(maxRedeem(owner), Math.Rounding.Floor);
     }
 
     /// @inheritdoc IERC4626
@@ -125,6 +153,9 @@ abstract contract ERC4626 is ERC20, ReentrancyGuard, IERC4626 {
             revert ERC4626ExceededMaxDeposit(receiver, assets, maxAssets);
         }
         shares = previewDeposit(assets);
+        if (assets != 0 && shares == 0) {
+            revert ERC4626ZeroShares();
+        }
         _deposit(_msgSender(), receiver, assets, shares);
     }
 
@@ -135,6 +166,9 @@ abstract contract ERC4626 is ERC20, ReentrancyGuard, IERC4626 {
             revert ERC4626ExceededMaxMint(receiver, shares, maxShares);
         }
         assets = previewMint(shares);
+        if (shares != 0 && assets == 0) {
+            revert ERC4626ZeroAssets();
+        }
         _deposit(_msgSender(), receiver, assets, shares);
     }
 
@@ -150,6 +184,9 @@ abstract contract ERC4626 is ERC20, ReentrancyGuard, IERC4626 {
             revert ERC4626ExceededMaxWithdraw(owner, assets, maxAssets);
         }
         shares = previewWithdraw(assets);
+        if (assets != 0 && shares == 0) {
+            revert ERC4626ZeroShares();
+        }
         _withdraw(_msgSender(), receiver, owner, assets, shares);
     }
 
@@ -165,6 +202,9 @@ abstract contract ERC4626 is ERC20, ReentrancyGuard, IERC4626 {
             revert ERC4626ExceededMaxRedeem(owner, shares, maxShares);
         }
         assets = previewRedeem(shares);
+        if (shares != 0 && assets == 0) {
+            revert ERC4626ZeroAssets();
+        }
         _withdraw(_msgSender(), receiver, owner, assets, shares);
     }
 
@@ -188,7 +228,15 @@ abstract contract ERC4626 is ERC20, ReentrancyGuard, IERC4626 {
      * Override to apply fees or alternate accounting. Do not omit the event.
      */
     function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal virtual {
-        IERC20(asset()).safeTransferFrom(caller, address(this), assets);
+        IERC20 token = IERC20(asset());
+        uint256 balanceBefore = token.balanceOf(address(this));
+        // ERC-777 `tokensToSend` can reenter before the transfer. Pull first so
+        // a reentrant call observes no new shares and no credited assets yet.
+        token.safeTransferFrom(caller, address(this), assets);
+        uint256 received = token.balanceOf(address(this)) - balanceBefore;
+        if (received != assets) {
+            revert ERC4626AssetTransferMismatch(assets, received);
+        }
         _mint(receiver, shares);
         emit Deposit(caller, receiver, assets, shares);
     }

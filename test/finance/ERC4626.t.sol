@@ -44,6 +44,35 @@ contract MockVaultUpgradeable is ERC4626Upgradeable {
     }
 }
 
+contract FeeOnTransferAsset is ERC20 {
+    constructor() ERC20("Fee Token", "FEE") {}
+
+    function mint(address to, uint256 amount) external {
+        _mint(to, amount);
+    }
+
+    function transfer(address to, uint256 amount) public override returns (bool) {
+        uint256 fee = amount / 10;
+        super.transfer(to, amount - fee);
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 amount) public override returns (bool) {
+        uint256 fee = amount / 10;
+        _spendAllowance(from, _msgSender(), amount);
+        _transfer(from, to, amount - fee);
+        return true;
+    }
+}
+
+contract RedeemCappedVault is ERC4626 {
+    constructor(IERC20 asset_) ERC20("Redeem Cap", "vRC") ERC4626(asset_) {}
+
+    function maxRedeem(address) public pure override returns (uint256) {
+        return 0;
+    }
+}
+
 contract LimitedVault is ERC4626 {
     uint256 public depositCap;
 
@@ -340,6 +369,50 @@ contract ERC4626Test is Test {
         vm.prank(alice);
         uint256 shares = vault.deposit(assets, alice);
         assertGe(shares, preview);
+    }
+
+    function test_constructor_revert_zeroAsset() public {
+        vm.expectRevert(abi.encodeWithSelector(ERC4626.ERC4626InvalidAsset.selector, address(0)));
+        new MockVault(IERC20(address(0)));
+    }
+
+    function test_upgradeable_revert_zeroAsset() public {
+        MockVaultUpgradeable impl = new MockVaultUpgradeable();
+        vm.expectRevert(abi.encodeWithSelector(ERC4626Upgradeable.ERC4626InvalidAsset.selector, address(0)));
+        new ERC1967Proxy(address(impl), abi.encodeCall(MockVaultUpgradeable.initialize, (IERC20(address(0)), "x", "y")));
+    }
+
+    function test_deposit_revert_zeroSharesAfterDonation() public {
+        _approve(alice, 1);
+        vm.prank(alice);
+        vault.deposit(1, alice);
+        asset.mint(address(vault), 10_000 ether);
+
+        _approve(bob, 1);
+        vm.prank(bob);
+        vm.expectRevert(ERC4626.ERC4626ZeroShares.selector);
+        vault.deposit(1, bob);
+    }
+
+    function test_deposit_revert_feeOnTransfer() public {
+        FeeOnTransferAsset feeAsset = new FeeOnTransferAsset();
+        MockVault feeVault = new MockVault(feeAsset);
+        feeAsset.mint(alice, 1_000 ether);
+        vm.prank(alice);
+        feeAsset.approve(address(feeVault), 100 ether);
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(ERC4626.ERC4626AssetTransferMismatch.selector, 100 ether, 90 ether));
+        feeVault.deposit(100 ether, alice);
+    }
+
+    function test_maxWithdraw_followsMaxRedeem() public {
+        RedeemCappedVault capped = new RedeemCappedVault(asset);
+        vm.prank(alice);
+        asset.approve(address(capped), 10 ether);
+        vm.prank(alice);
+        capped.deposit(10 ether, alice);
+        assertEq(capped.maxRedeem(alice), 0);
+        assertEq(capped.maxWithdraw(alice), 0);
     }
 
     function testFuzz_convertPair(uint96 assetsRaw) public {

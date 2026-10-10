@@ -15,8 +15,10 @@ import {IERC4626} from "./IERC4626.sol";
  * the asset address and cached asset decimals.
  *
  * Conversion, rounding, and inflation-offset rules match {ERC4626}.
- * ERC-2612 permit is left to subclasses. Fee-on-transfer and rebasing assets
- * are unsupported.
+ * SECURITY HARDENING (v0.6.1) matches {ERC4626}: zero-asset reject, zero-share
+ * and zero-asset dust reverts, fee-on-transfer balance-delta check, and
+ * `{maxWithdraw}` derived from `{maxRedeem}`.
+ * Implementation constructors should call `_disableInitializers()`.
  */
 abstract contract ERC4626Upgradeable is Initializable, ERC20Upgradeable, IERC4626 {
     using Math for uint256;
@@ -39,6 +41,18 @@ abstract contract ERC4626Upgradeable is Initializable, ERC20Upgradeable, IERC462
 
     /// @dev Mutative vault call re-entered.
     error ERC4626ReentrantCall();
+
+    /// @dev Underlying asset is the zero address.
+    error ERC4626InvalidAsset(address asset);
+
+    /// @dev Non-zero assets would mint or burn zero shares.
+    error ERC4626ZeroShares();
+
+    /// @dev Non-zero shares would deposit or withdraw zero assets.
+    error ERC4626ZeroAssets();
+
+    /// @dev Asset transfer credited `received` instead of the required `expected`.
+    error ERC4626AssetTransferMismatch(uint256 expected, uint256 received);
 
     /// @custom:storage-location erc7201:curatedcontracts.storage.ERC4626
     struct ERC4626Storage {
@@ -67,6 +81,9 @@ abstract contract ERC4626Upgradeable is Initializable, ERC20Upgradeable, IERC462
     }
 
     function __ERC4626_init_unchained(IERC20 asset_) internal onlyInitializing {
+        if (address(asset_) == address(0)) {
+            revert ERC4626InvalidAsset(address(0));
+        }
         ERC4626Storage storage $ = _getERC4626Storage();
         (bool ok, uint8 assetDecimals) = _tryGetAssetDecimals(asset_);
         $.underlyingDecimals = ok ? assetDecimals : 18;
@@ -121,7 +138,7 @@ abstract contract ERC4626Upgradeable is Initializable, ERC20Upgradeable, IERC462
 
     /// @inheritdoc IERC4626
     function maxWithdraw(address owner) public view virtual returns (uint256) {
-        return _convertToAssets(balanceOf(owner), Math.Rounding.Floor);
+        return _convertToAssets(maxRedeem(owner), Math.Rounding.Floor);
     }
 
     /// @inheritdoc IERC4626
@@ -156,6 +173,9 @@ abstract contract ERC4626Upgradeable is Initializable, ERC20Upgradeable, IERC462
             revert ERC4626ExceededMaxDeposit(receiver, assets, maxAssets);
         }
         shares = previewDeposit(assets);
+        if (assets != 0 && shares == 0) {
+            revert ERC4626ZeroShares();
+        }
         _deposit(_msgSender(), receiver, assets, shares);
     }
 
@@ -166,6 +186,9 @@ abstract contract ERC4626Upgradeable is Initializable, ERC20Upgradeable, IERC462
             revert ERC4626ExceededMaxMint(receiver, shares, maxShares);
         }
         assets = previewMint(shares);
+        if (shares != 0 && assets == 0) {
+            revert ERC4626ZeroAssets();
+        }
         _deposit(_msgSender(), receiver, assets, shares);
     }
 
@@ -181,6 +204,9 @@ abstract contract ERC4626Upgradeable is Initializable, ERC20Upgradeable, IERC462
             revert ERC4626ExceededMaxWithdraw(owner, assets, maxAssets);
         }
         shares = previewWithdraw(assets);
+        if (assets != 0 && shares == 0) {
+            revert ERC4626ZeroShares();
+        }
         _withdraw(_msgSender(), receiver, owner, assets, shares);
     }
 
@@ -196,6 +222,9 @@ abstract contract ERC4626Upgradeable is Initializable, ERC20Upgradeable, IERC462
             revert ERC4626ExceededMaxRedeem(owner, shares, maxShares);
         }
         assets = previewRedeem(shares);
+        if (shares != 0 && assets == 0) {
+            revert ERC4626ZeroAssets();
+        }
         _withdraw(_msgSender(), receiver, owner, assets, shares);
     }
 
@@ -219,7 +248,13 @@ abstract contract ERC4626Upgradeable is Initializable, ERC20Upgradeable, IERC462
      * Override to apply fees or alternate accounting. Do not omit the event.
      */
     function _deposit(address caller, address receiver, uint256 assets, uint256 shares) internal virtual {
-        IERC20(asset()).safeTransferFrom(caller, address(this), assets);
+        IERC20 token = IERC20(asset());
+        uint256 balanceBefore = token.balanceOf(address(this));
+        token.safeTransferFrom(caller, address(this), assets);
+        uint256 received = token.balanceOf(address(this)) - balanceBefore;
+        if (received != assets) {
+            revert ERC4626AssetTransferMismatch(assets, received);
+        }
         _mint(receiver, shares);
         emit Deposit(caller, receiver, assets, shares);
     }
