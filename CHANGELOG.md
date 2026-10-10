@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0] — 2026-10-10
+
+### Added
+
+- **ERC-4626** — Tokenized vaults: abstract ERC-20 share token, deposit/mint/withdraw/redeem, preview helpers, virtual offset against first-depositor inflation, upgradeable ERC-7201 variant ([#59](https://github.com/jose-compu/curated-erc/pull/59), closes [#41](https://github.com/jose-compu/curated-erc/issues/41))
+- LinkedIn release banner template at `img/linkedin-release-banner.jpg` (official logo, placeholder `vX.Y.Z`)
+
 ## [0.5.1] — 2026-08-27
 
 ### Fixed

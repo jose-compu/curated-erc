@@ -39,7 +39,7 @@ Status is refreshed against **Final** ERCs with 2026 on-chain / protocol tractio
 | 4906 | Metadata Update Extension | ✅ Done |
 | 2309 | Consecutive Transfer Extension | ✅ Done |
 | 5484 | Consensual Soulbound Tokens | ✅ Done |
-| 4626 | Tokenized Vaults | 🚧 [#41](https://github.com/jose-compu/curated-erc/issues/41) (v0.6.0) |
+| 4626 | Tokenized Vaults | ✅ Done |
 | 7540 | Async ERC-4626 Vaults | 🔲 [#25](https://github.com/jose-compu/curated-erc/issues/25) |
 | 7575 | Multi-Asset ERC-4626 Vaults | 🔲 [#25](https://github.com/jose-compu/curated-erc/issues/25) |
 | 5006 | Rental NFT (ERC-1155) | 🔲 [#32](https://github.com/jose-compu/curated-erc/issues/32) |
@@ -83,7 +83,7 @@ Do not implement as “canonical Final” until status flips. Track for the next
 
 Queued so the next tags do not require another brainstorm. Existing issues stay the source of truth.
 
-**v0.6.0** — ERC-4626 tokenized vaults ([#41](https://github.com/jose-compu/curated-erc/issues/41)).
+**v0.6.0** — ERC-4626 tokenized vaults. Shipped.
 
 **v0.7.0 utilities** — ERC-5267 EIP-712 domain ([#56](https://github.com/jose-compu/curated-erc/issues/56)), ERC-7751 bubbled reverts ([#34](https://github.com/jose-compu/curated-erc/issues/34)), ERC-8042 diamond storage ([#30](https://github.com/jose-compu/curated-erc/issues/30)).
 
