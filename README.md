@@ -255,7 +255,7 @@ Hardhat will compile the contracts in `node_modules/curated-erc` when resolving 
 ```bash
 forge install
 forge build    # via-ir enabled for stack-heavy registry contracts
-forge test -vv # 405 tests (unit + fuzz)
+forge test -vv # 410 tests (unit + fuzz)
 ```
 
 ## Dependencies
