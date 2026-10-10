@@ -39,7 +39,7 @@ Status is refreshed against **Final** ERCs with 2026 on-chain / protocol tractio
 | 4906 | Metadata Update Extension | ✅ Done |
 | 2309 | Consecutive Transfer Extension | ✅ Done |
 | 5484 | Consensual Soulbound Tokens | ✅ Done |
-| 4626 | Tokenized Vaults | 🔲 [#41](https://github.com/jose-compu/curated-erc/issues/41) |
+| 4626 | Tokenized Vaults | 🚧 [#41](https://github.com/jose-compu/curated-erc/issues/41) (v0.6.0) |
 | 7540 | Async ERC-4626 Vaults | 🔲 [#25](https://github.com/jose-compu/curated-erc/issues/25) |
 | 7575 | Multi-Asset ERC-4626 Vaults | 🔲 [#25](https://github.com/jose-compu/curated-erc/issues/25) |
 | 5006 | Rental NFT (ERC-1155) | 🔲 [#32](https://github.com/jose-compu/curated-erc/issues/32) |
@@ -59,7 +59,7 @@ Status is refreshed against **Final** ERCs with 2026 on-chain / protocol tractio
 | ERC | Name | Status |
 |-----|------|--------|
 | 7092 | Financial Bonds | 🔲 [#31](https://github.com/jose-compu/curated-erc/issues/31) |
-| 3475 | Abstract Storage Bonds | 🔲 Not started |
+| 3475 | Abstract Storage Bonds | 🔲 [#58](https://github.com/jose-compu/curated-erc/issues/58) |
 | 7751 | Wrapping Bubbled Reverts | 🔲 [#34](https://github.com/jose-compu/curated-erc/issues/34) |
 | 7818 | Expirable ERC-20 | ✅ Done |
 | 8042 | Diamond Storage | 🔲 [#30](https://github.com/jose-compu/curated-erc/issues/30) |
@@ -78,6 +78,20 @@ Do not implement as “canonical Final” until status flips. Track for the next
 | 7930 | Interoperable Addresses | Review | Required by Final ERC-7786; ship codec with #53 |
 | 7677 | Paymaster Web Service Capability | Review | Wallet JSON-RPC (5792), not a Solidity primitive |
 | 3009 | Transfer With Authorization | Draft | USDC / x402 gasless transfers |
+
+## Next releases
+
+Queued so the next tags do not require another brainstorm. Existing issues stay the source of truth.
+
+**v0.6.0** — ERC-4626 tokenized vaults ([#41](https://github.com/jose-compu/curated-erc/issues/41)).
+
+**v0.7.0 utilities** — ERC-5267 EIP-712 domain ([#56](https://github.com/jose-compu/curated-erc/issues/56)), ERC-7751 bubbled reverts ([#34](https://github.com/jose-compu/curated-erc/issues/34)), ERC-8042 diamond storage ([#30](https://github.com/jose-compu/curated-erc/issues/30)).
+
+**Later minors** — ERC-6909 ([#55](https://github.com/jose-compu/curated-erc/issues/55)), ERC-7943 uRWA ([#40](https://github.com/jose-compu/curated-erc/issues/40)), ERC-5006 ([#32](https://github.com/jose-compu/curated-erc/issues/32)).
+
+**v1.0.0** — SECURITY.md ([#12](https://github.com/jose-compu/curated-erc/issues/12)), token invariants ([#8](https://github.com/jose-compu/curated-erc/issues/8)), upgrade lifecycle tests ([#15](https://github.com/jose-compu/curated-erc/issues/15)).
+
+Closable hygiene (already shipped, do not block v0.6.0): [#6](https://github.com/jose-compu/curated-erc/issues/6) `[profile.ci]`, [#13](https://github.com/jose-compu/curated-erc/issues/13) diamond npm path, [#14](https://github.com/jose-compu/curated-erc/issues/14) README/CHANGELOG version.
 
 ## Per-ERC Workflow
 

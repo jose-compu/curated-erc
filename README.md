@@ -36,13 +36,14 @@ Curated ERC Contracts fills that gap.
 | 6492 | Predeploy Signature Validation | Cryptography |
 | 2771 | Meta Transactions | Context / Gasless UX |
 | 3156 | Flash Loans | DeFi / Finance |
+| 4626 | Tokenized Vaults | DeFi / Finance |
 | 7201 | Namespaced Storage Layout | Utils / Upgrades |
 | 2535 | Diamonds (Multi-Facet Proxy) | Proxy / Upgrades |
 | 4361 | Sign-In with Ethereum | Auth / Identity |
 | 7818 | Expirable ERC-20 | Token (ERC-20 extension) |
 | 8004 | Trustless Agents | AI Agents (identity, reputation, validation) |
 
-16 standards implemented (non-upgradeable + upgradeable where applicable). Full plan across 40+ ERCs in [ROADMAP.md](./ROADMAP.md). Release history in [CHANGELOG.md](./CHANGELOG.md).
+17 standards implemented (non-upgradeable + upgradeable where applicable). Full plan across 40+ ERCs in [ROADMAP.md](./ROADMAP.md). Release history in [CHANGELOG.md](./CHANGELOG.md).
 
 ## Structure
 
@@ -58,7 +59,9 @@ src/
 │   ├── ERC5484/          # Consensual Soulbound Tokens (burn authorization)
 │   └── ERC7818/          # Expirable ERC-20 (epoch-based expiry)
 ├── metatx/               # ERC-2771 Trusted Forwarder context
-├── finance/              # ERC-3156 Flash Loan lender
+├── finance/
+│   ├── ERC3156FlashLender.sol
+│   └── ERC4626/          # Tokenized vaults (shares / assets)
 ├── diamond/              # ERC-2535 Diamonds (multi-facet proxy)
 ├── auth/                 # ERC-4361 Sign-In with Ethereum
 │   ├── SIWE.sol          # Library: ERC-191 hash, verify, parse message
@@ -172,6 +175,20 @@ ERC8004ValidationRegistry validation =
 uint256 agentId = identity.register("ipfs://agent-registration.json");
 ```
 
+**ERC-4626 (Tokenized Vault)** — ERC-20 shares redeemable for an underlying asset:
+
+```solidity
+import {ERC4626} from "curated-erc/finance/ERC4626/ERC4626.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
+contract MyVault is ERC4626 {
+    constructor(IERC20 asset_) ERC20("My Vault", "vMY") ERC4626(asset_) {}
+}
+```
+
+`previewDeposit` / `previewMint` / `previewWithdraw` / `previewRedeem` report the exchange before execution. The base uses a virtual offset so an empty vault cannot be inflated by a first-depositor donation. ERC-2612 permit and fee-on-transfer assets are left to subclasses.
+
 ### Hardhat
 
 The recommended path is the [`@nomicfoundation/hardhat-foundry`](https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-foundry) plugin, which lets Hardhat read `remappings.txt` and resolve imports from the `lib/` folder directly — no duplicate OpenZeppelin installs.
@@ -238,7 +255,7 @@ Hardhat will compile the contracts in `node_modules/curated-erc` when resolving 
 ```bash
 forge install
 forge build    # via-ir enabled for stack-heavy registry contracts
-forge test -vv # 378 tests (unit + fuzz)
+forge test -vv # 405 tests (unit + fuzz)
 ```
 
 ## Dependencies
