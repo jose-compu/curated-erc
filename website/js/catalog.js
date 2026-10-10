@@ -164,7 +164,7 @@ export const CATALOG = [
     wing: "defi",
     tagline: "Shares for assets",
     description:
-      "ERC-20 vault shares redeemable for an underlying asset—deposit, mint, withdraw, and redeem with preview functions and inflation-resistant conversion.",
+      "ERC-20 vault shares redeemable for an underlying asset—deposit, mint, withdraw, and redeem with preview functions and inflation-resistant conversion. v0.6.1 rejects zero assets, dust shares, and fee-on-transfer shortfalls.",
     path: "finance/ERC4626/ERC4626",
     eip: "https://eips.ethereum.org/EIPS/eip-4626",
     palette: ["#fff8e8", "#d4b06a", "#7a5a28", "#2c2010"],
