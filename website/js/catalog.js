@@ -157,6 +157,19 @@ export const CATALOG = [
     palette: ["#fff8e8", "#e8c84a", "#9a7b18", "#3d3010"],
   },
   {
+    id: "erc4626",
+    number: 4626,
+    name: "Tokenized Vaults",
+    category: "DeFi gallery",
+    wing: "defi",
+    tagline: "Shares for assets",
+    description:
+      "ERC-20 vault shares redeemable for an underlying asset—deposit, mint, withdraw, and redeem with preview functions and inflation-resistant conversion.",
+    path: "finance/ERC4626/ERC4626",
+    eip: "https://eips.ethereum.org/EIPS/eip-4626",
+    palette: ["#fff8e8", "#d4b06a", "#7a5a28", "#2c2010"],
+  },
+  {
     id: "erc7201",
     number: 7201,
     name: "Namespaced Storage",
