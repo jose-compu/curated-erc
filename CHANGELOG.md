@@ -4,7 +4,7 @@
 
 ### Added
 
-- **ERC-7751** — Wrapping of bubbled up reverts: `ERC7751` library with `WrappedError` (selector `0x90bfb865`), `bubbleRevert`, and nested revert tests ([#TBD](https://github.com/jose-compu/curated-erc/pull/TBD), closes [#34](https://github.com/jose-compu/curated-erc/issues/34))
+- **ERC-7751** — Wrapping of bubbled up reverts: `ERC7751` library with `WrappedError` (selector `0x90bfb865`), `bubbleRevert`, and nested revert tests ([#64](https://github.com/jose-compu/curated-erc/pull/64), closes [#34](https://github.com/jose-compu/curated-erc/issues/34))
 
 ## [0.6.1] — 2026-10-10
 
