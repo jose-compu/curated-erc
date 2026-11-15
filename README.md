@@ -280,7 +280,7 @@ forge test -vv # 416 tests (unit + fuzz)
 
 ## npm publishing
 
-Releases use [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers/) from GitHub Actions. When a semver tag `v*.*.*` is pushed, `.github/workflows/publish.yml` verifies the tag matches `package.json`, checks the packed contract trees, and runs `npm publish` with OIDC (`id-token: write`; no npm token secret). If that version is already on the registry, the job exits successfully without republishing. Configure the trusted publisher on [npmjs.com](https://www.npmjs.com/) for repository `jose-compu/curated-erc` and workflow filename `publish.yml` before the first automated publish.
+Releases use [npm Trusted Publishing](https://docs.npmjs.com/trusted-publishers/) from GitHub Actions (`id-token: write`; no npm token). **Normal path:** push an annotated semver tag `v*.*.*` matching `package.json`; `publish.yml` publishes via OIDC. **Fallback:** merge a PR that updates [`.github/npm-publish-tag`](.github/npm-publish-tag) to the tag to publish (e.g. `v0.7.0`) when the tag already exists. See [CONTRIBUTING.md](./CONTRIBUTING.md). Configure the trusted publisher on [npmjs.com](https://www.npmjs.com/) for `jose-compu/curated-erc`, workflow `publish.yml` (no GitHub Environment unless configured on npm).
 
 ## Dependencies
 

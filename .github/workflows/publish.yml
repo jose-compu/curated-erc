@@ -4,6 +4,10 @@ on:
   push:
     tags:
       - "v*.*.*"
+    branches:
+      - main
+    paths:
+      - ".github/npm-publish-tag"
   workflow_dispatch:
     inputs:
       tag:
@@ -16,7 +20,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: publish-${{ github.workflow }}-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+  group: publish-${{ github.workflow }}-${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.sha }}
   cancel-in-progress: false
 
 jobs:
@@ -24,32 +28,71 @@ jobs:
     name: npm
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      PUBLISH_TAG_REF: ${{ github.event_name == 'workflow_dispatch' && format('refs/tags/{0}', inputs.tag) || github.ref }}
-      PUBLISH_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
     steps:
-      - name: Validate dispatch tag input
-        if: github.event_name == 'workflow_dispatch'
+      - name: Read npm publish request (merge to main)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          sparse-checkout: |
+            .github/npm-publish-tag
+
+      - name: Resolve publish target
+        id: meta
+        shell: bash
         run: |
-          TAG="${{ inputs.tag }}"
-          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid tag format (expected v*.*.*): $TAG" >&2
+          set -euo pipefail
+          validate_tag() {
+            if [[ ! "$1" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "Invalid tag format (expected v*.*.*): $1" >&2
+              exit 1
+            fi
+          }
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="${{ inputs.tag }}"
+            validate_tag "$TAG"
+            echo "overlay=fetch_main" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF_NAME}"
+            validate_tag "$TAG"
+            echo "overlay=none" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.ref }}" = "refs/heads/main" ]; then
+            TAG=$(tr -d '[:space:]' < .github/npm-publish-tag)
+            validate_tag "$TAG"
+            echo "overlay=main_sha" >> "$GITHUB_OUTPUT"
+          else
+            echo "Unsupported ref: ${{ github.ref }}" >&2
             exit 1
           fi
 
-      - name: Checkout tag
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "PUBLISH_TAG_REF=refs/tags/${TAG}" >> "$GITHUB_ENV"
+          echo "PUBLISH_VERSION=${TAG}" >> "$GITHUB_ENV"
+          echo "Resolved publish target: ${TAG}"
+
+      - name: Checkout tag sources
         uses: actions/checkout@v5
         with:
-          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+          ref: ${{ steps.meta.outputs.tag }}
           persist-credentials: false
           fetch-depth: 1
 
-      - name: Overlay lockfile and verify script from main (dispatch)
-        if: github.event_name == 'workflow_dispatch'
+      - name: Overlay lockfile and verify script from main
+        if: steps.meta.outputs.overlay != 'none'
+        shell: bash
         run: |
-          git fetch --depth 1 origin main
-          git show FETCH_HEAD:package-lock.json > package-lock.json
-          git show FETCH_HEAD:scripts/verify-npm-release.js > scripts/verify-npm-release.js
+          set -euo pipefail
+          if [ "${{ steps.meta.outputs.overlay }}" = "main_sha" ]; then
+            git fetch --depth 1 origin "${{ github.sha }}"
+            TOOLING="${{ github.sha }}"
+          else
+            git fetch --depth 1 origin main
+            TOOLING="FETCH_HEAD"
+          fi
+          git show "${TOOLING}:package-lock.json" > package-lock.json
+          git show "${TOOLING}:scripts/verify-npm-release.js" > scripts/verify-npm-release.js
 
       - name: Setup Node
         uses: actions/setup-node@v4
