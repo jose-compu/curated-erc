@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """Render img/linkedin-release-banner.jpg from the official logo.
 
+Uses vendored Playfair Display (OFL) under assets/fonts/ for identical output
+on Linux and macOS.
+
 Usage:
   python3 scripts/render-linkedin-banner.py
-  python3 scripts/render-linkedin-banner.py --version 0.6.0 --subtitle "ERC-4626 tokenized vaults"
+  python3 scripts/render-linkedin-banner.py --version 0.7.0 --subtitle "ERC-7751 wrapped reverts"
 """
 from __future__ import annotations
 
@@ -13,6 +16,8 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 ROOT = Path(__file__).resolve().parents[1]
+FONT_DIR = ROOT / "assets" / "fonts"
+PLAYFAIR = FONT_DIR / "PlayfairDisplay[wght].ttf"
 LOGO = ROOT / "img" / "logo.jpg"
 OUT = ROOT / "img" / "linkedin-release-banner.jpg"
 
@@ -23,41 +28,54 @@ MUTED = (70, 64, 56)
 FOOT = (90, 84, 76)
 GOLD = (184, 149, 80)
 
-DIDOT = "/System/Library/Fonts/Supplemental/Didot.ttc"
-TIMES = "/Library/Fonts/Times.ttc"
-
-# Linux (and other non-macOS) fallbacks — serif pairing similar to Didot + Times
-LINUX_DISPLAY = (
-    "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf",
-    "/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf",
-)
-LINUX_BODY = (
-    "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
-    "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
-)
+TEXT_X = 620
+TEXT_MAX_W = W - TEXT_X - 56
+LINE = 1.28
 
 
-def _pick_font(candidates: tuple[str, ...], size: int) -> ImageFont.FreeTypeFont:
-    for path in candidates:
-        if Path(path).is_file():
-            return ImageFont.truetype(path, size)
-    raise FileNotFoundError(f"no font found among: {candidates}")
+def playfair(size: int, weight: int) -> ImageFont.FreeTypeFont:
+    if not PLAYFAIR.is_file():
+        raise FileNotFoundError(f"Missing vendored font: {PLAYFAIR}")
+    font = ImageFont.truetype(PLAYFAIR, size)
+    font.set_variation_by_axes([weight])
+    return font
 
 
-def _load_fonts() -> tuple[ImageFont.FreeTypeFont, ImageFont.FreeTypeFont, ImageFont.FreeTypeFont, ImageFont.FreeTypeFont]:
-    if Path(DIDOT).is_file() and Path(TIMES).is_file():
-        return (
-            ImageFont.truetype(DIDOT, 54),
-            ImageFont.truetype(DIDOT, 36),
-            ImageFont.truetype(TIMES, 26),
-            ImageFont.truetype(TIMES, 18),
-        )
-    return (
-        _pick_font(LINUX_DISPLAY, 54),
-        _pick_font(LINUX_DISPLAY, 36),
-        _pick_font(LINUX_BODY, 26),
-        _pick_font(LINUX_BODY, 18),
-    )
+def text_width(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont) -> float:
+    return draw.textlength(text, font=font)
+
+
+def wrap_subtitle(
+    draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont, max_width: float
+) -> list[str]:
+    words = text.split()
+    if not words:
+        return [""]
+    lines: list[str] = []
+    current = words[0]
+    for word in words[1:]:
+        trial = f"{current} {word}"
+        if text_width(draw, trial, font) <= max_width:
+            current = trial
+        else:
+            lines.append(current)
+            current = word
+    lines.append(current)
+    return lines
+
+
+def fit_subtitle(
+    draw: ImageDraw.ImageDraw, text: str
+) -> tuple[ImageFont.FreeTypeFont, list[str]]:
+    for size, weight in ((36, 600), (34, 600), (32, 500), (30, 500)):
+        font = playfair(size, weight)
+        lines = wrap_subtitle(draw, text, font, TEXT_MAX_W)
+        line_h = size * LINE
+        block_h = line_h * len(lines)
+        if block_h <= 120 and len(lines) <= 2:
+            return font, lines
+    font = playfair(30, 500)
+    return font, wrap_subtitle(draw, text, font, TEXT_MAX_W)
 
 
 def main() -> None:
@@ -76,14 +94,26 @@ def main() -> None:
     canvas.paste(logo, (56, (H - logo.height) // 2))
 
     draw = ImageDraw.Draw(canvas)
-    title, sub, body, small = _load_fonts()
+    title_font = playfair(54, 700)
+    version_font = playfair(36, 600)
+    subtitle_font, subtitle_lines = fit_subtitle(draw, args.subtitle)
+    foot_font = playfair(19, 400)
 
-    tx, ty = 620, 190
-    draw.text((tx, ty), "NEW RELEASE", font=title, fill=INK)
-    draw.line((tx, ty + 72, tx + 420, ty + 72), fill=GOLD, width=2)
-    draw.text((tx, ty + 100), version, font=sub, fill=INK)
-    draw.text((tx, ty + 152), args.subtitle, font=body, fill=MUTED)
-    draw.text((tx, H - 72), args.url, font=small, fill=FOOT)
+    ty = 178
+    draw.text((TEXT_X, ty), "NEW RELEASE", font=title_font, fill=INK)
+    rule_y = ty + 70
+    draw.line((TEXT_X, rule_y, TEXT_X + 420, rule_y), fill=GOLD, width=2)
+
+    vy = rule_y + 28
+    draw.text((TEXT_X, vy), version, font=version_font, fill=INK)
+
+    sub_y = vy + 50
+    sub_line_h = subtitle_font.size * LINE
+    for line in subtitle_lines:
+        draw.text((TEXT_X, int(sub_y)), line, font=subtitle_font, fill=MUTED)
+        sub_y += sub_line_h
+
+    draw.text((TEXT_X, H - 68), args.url, font=foot_font, fill=FOOT)
 
     canvas.save(OUT, "JPEG", quality=92, optimize=True)
     print(f"wrote {OUT}")
