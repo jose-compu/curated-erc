@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **npm** — Trusted Publishing via `.github/workflows/publish.yml`: pushes to tags `v*.*.*` publish `curated-erc` to the registry with OIDC (no `NPM_TOKEN`); `workflow_dispatch` supported for manual runs on a tag ref.
+
 ## [0.7.0] — 2026-11-15
 
 ### Added
