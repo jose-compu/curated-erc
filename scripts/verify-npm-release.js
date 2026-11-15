@@ -5,10 +5,12 @@
 const { execSync } = require("child_process");
 const pkg = require("../package.json");
 
-const ref = process.env.GITHUB_REF || "";
+const ref = process.env.PUBLISH_TAG_REF || process.env.GITHUB_REF || "";
 const tagMatch = ref.match(/^refs\/tags\/v(\d+\.\d+\.\d+)$/);
 if (!tagMatch) {
-  console.error(`Expected GITHUB_REF refs/tags/v*.*.*, got: ${ref || "(empty)"}`);
+  console.error(
+    `Expected refs/tags/v*.*.* in PUBLISH_TAG_REF or GITHUB_REF, got: ${ref || "(empty)"}`,
+  );
   process.exit(1);
 }
 const tagVersion = tagMatch[1];
