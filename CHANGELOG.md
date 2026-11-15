@@ -4,7 +4,7 @@
 
 ### Added
 
-- **npm** — Trusted Publishing via `.github/workflows/publish.yml`: pushes to tags `v*.*.*` publish `curated-erc` to the registry with OIDC (no `NPM_TOKEN`); `workflow_dispatch` supported for manual runs on a tag ref.
+- **npm** — Trusted Publishing via `.github/workflows/publish.yml`: pushes to tags `v*.*.*` publish `curated-erc` to the registry with OIDC (no `NPM_TOKEN`); `workflow_dispatch` on `main` with a `tag` input (e.g. `v0.7.0`) checks out that tag's sources and overlays `package-lock.json` / `verify-npm-release.js` from `main`.
 
 ## [0.7.0] — 2026-11-15
 
