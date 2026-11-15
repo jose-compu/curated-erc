@@ -16,7 +16,7 @@ python3 scripts/render-linkedin-banner.py --version 0.7.0 \
   --detail "Failed inner calls now revert with WrappedError, keeping the target, selector and original revert reason."
 ```
 
-Optional `--detail` adds a short improvement line under the subtitle. Version uses lining figures (`+lnum` when libraqm is available).
+Optional `--detail` adds a short improvement line under the subtitle (up to 3 lines; full text required). Lining figures via `+lnum` when libraqm is available, else `GFSDidot-Regular.ttf` for lines with digits.
 
 ## The Gap
 
