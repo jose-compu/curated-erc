@@ -1,5 +1,7 @@
 name: Publish
 
+# Normal release: push annotated tag v*.*.* (matches package.json).
+# Fallback: merge a change to .github/npm-publish-tag (agent-friendly).
 on:
   push:
     tags:
