@@ -4,9 +4,11 @@
 
 # Curated ERC
 
-> v0.6.1
+> v0.7.0
 
 Canonical implementations of ERCs with real on-chain traction. Foundry-native, Solidity-tested.
+
+Release banner (v0.7.0): [`img/linkedin-release-banner.jpg`](img/linkedin-release-banner.jpg).
 
 ## The Gap
 
@@ -34,6 +36,7 @@ Curated ERC Contracts fills that gap.
 | 3525 | Semi-Fungible Token | Token (ERC-721 compatible) |
 | 1271 | Signature Validation for Contracts | Cryptography |
 | 6492 | Predeploy Signature Validation | Cryptography |
+| 7751 | Wrapping of Bubbled Reverts | Utils / Error handling |
 | 2771 | Meta Transactions | Context / Gasless UX |
 | 3156 | Flash Loans | DeFi / Finance |
 | 4626 | Tokenized Vaults | DeFi / Finance |
@@ -43,7 +46,7 @@ Curated ERC Contracts fills that gap.
 | 7818 | Expirable ERC-20 | Token (ERC-20 extension) |
 | 8004 | Trustless Agents | AI Agents (identity, reputation, validation) |
 
-17 standards implemented (non-upgradeable + upgradeable where applicable). Full plan across 40+ ERCs in [ROADMAP.md](./ROADMAP.md). Release history in [CHANGELOG.md](./CHANGELOG.md).
+18 standards implemented (non-upgradeable + upgradeable where applicable). Full plan across 40+ ERCs in [ROADMAP.md](./ROADMAP.md). Release history in [CHANGELOG.md](./CHANGELOG.md).
 
 ## Structure
 
@@ -73,6 +76,7 @@ src/
 │   └── ERC8004ValidationRegistry(.sol|Upgradeable.sol)
 └── utils/
     ├── cryptography/     # ERC-1271 + ERC-6492 Signature validation
+    ├── ERC7751.sol       # ERC-7751 bubbled revert wrapping
     └── StorageSlot7201.sol
 ```
 
@@ -81,7 +85,7 @@ Each ERC typically ships as:
 - `ERC*.sol` — Non-upgradeable implementation (abstract base or deployable contract)
 - `ERC*Upgradeable.sol` — Upgradeable (Initializable + ERC-7201 namespaced storage)
 
-Exceptions: **ERC-4361** exposes a library (`SIWE`) plus `SIWEParser` and `SIWEVerifier`; **ERC-6492** and **ERC-7201** are libraries/utilities; **ERC-8004** ships three deployable registry contracts per variant.
+Exceptions: **ERC-4361** exposes a library (`SIWE`) plus `SIWEParser` and `SIWEVerifier`; **ERC-6492**, **ERC-7201**, and **ERC-7751** are libraries/utilities; **ERC-8004** ships three deployable registry contracts per variant.
 
 ## Installation
 
@@ -189,6 +193,22 @@ contract MyVault is ERC4626 {
 
 `previewDeposit` / `previewMint` / `previewWithdraw` / `previewRedeem` report the exchange before execution. The base uses a virtual offset so an empty vault cannot be inflated by a first-depositor donation. ERC-2612 permit and fee-on-transfer assets are left to subclasses.
 
+**ERC-7751 (Wrapped reverts)** — bubble inner failures with structured context:
+
+```solidity
+import {ERC7751} from "curated-erc/utils/ERC7751.sol";
+
+try token.transfer(to, amount) {} catch (bytes memory err) {
+    ERC7751.bubbleRevert(
+        address(token),
+        abi.encodeCall(token.transfer, (to, amount)),
+        err,
+        ""
+    );
+    // or: ERC7751.revertWithWrappedError(target, selector, err, details);
+}
+```
+
 ### Hardhat
 
 The recommended path is the [`@nomicfoundation/hardhat-foundry`](https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-foundry) plugin, which lets Hardhat read `remappings.txt` and resolve imports from the `lib/` folder directly — no duplicate OpenZeppelin installs.
@@ -255,7 +275,7 @@ Hardhat will compile the contracts in `node_modules/curated-erc` when resolving 
 ```bash
 forge install
 forge build    # via-ir enabled for stack-heavy registry contracts
-forge test -vv # 410 tests (unit + fuzz)
+forge test -vv # 416 tests (unit + fuzz)
 ```
 
 ## Dependencies

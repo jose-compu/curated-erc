@@ -26,6 +26,39 @@ GOLD = (184, 149, 80)
 DIDOT = "/System/Library/Fonts/Supplemental/Didot.ttc"
 TIMES = "/Library/Fonts/Times.ttc"
 
+# Linux (and other non-macOS) fallbacks — serif pairing similar to Didot + Times
+LINUX_DISPLAY = (
+    "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSerif-Bold.ttf",
+)
+LINUX_BODY = (
+    "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf",
+    "/usr/share/fonts/truetype/liberation/LiberationSerif-Regular.ttf",
+)
+
+
+def _pick_font(candidates: tuple[str, ...], size: int) -> ImageFont.FreeTypeFont:
+    for path in candidates:
+        if Path(path).is_file():
+            return ImageFont.truetype(path, size)
+    raise FileNotFoundError(f"no font found among: {candidates}")
+
+
+def _load_fonts() -> tuple[ImageFont.FreeTypeFont, ImageFont.FreeTypeFont, ImageFont.FreeTypeFont, ImageFont.FreeTypeFont]:
+    if Path(DIDOT).is_file() and Path(TIMES).is_file():
+        return (
+            ImageFont.truetype(DIDOT, 54),
+            ImageFont.truetype(DIDOT, 36),
+            ImageFont.truetype(TIMES, 26),
+            ImageFont.truetype(TIMES, 18),
+        )
+    return (
+        _pick_font(LINUX_DISPLAY, 54),
+        _pick_font(LINUX_DISPLAY, 36),
+        _pick_font(LINUX_BODY, 26),
+        _pick_font(LINUX_BODY, 18),
+    )
+
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -43,10 +76,7 @@ def main() -> None:
     canvas.paste(logo, (56, (H - logo.height) // 2))
 
     draw = ImageDraw.Draw(canvas)
-    title = ImageFont.truetype(DIDOT, 54)
-    sub = ImageFont.truetype(DIDOT, 36)
-    body = ImageFont.truetype(TIMES, 26)
-    small = ImageFont.truetype(TIMES, 18)
+    title, sub, body, small = _load_fonts()
 
     tx, ty = 620, 190
     draw.text((tx, ty), "NEW RELEASE", font=title, fill=INK)

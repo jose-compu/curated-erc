@@ -60,7 +60,7 @@ Status is refreshed against **Final** ERCs with 2026 on-chain / protocol tractio
 |-----|------|--------|
 | 7092 | Financial Bonds | 🔲 [#31](https://github.com/jose-compu/curated-erc/issues/31) |
 | 3475 | Abstract Storage Bonds | 🔲 [#58](https://github.com/jose-compu/curated-erc/issues/58) |
-| 7751 | Wrapping Bubbled Reverts | 🔲 [#34](https://github.com/jose-compu/curated-erc/issues/34) |
+| 7751 | Wrapping Bubbled Reverts | ✅ Done (v0.7.0) |
 | 7818 | Expirable ERC-20 | ✅ Done |
 | 8042 | Diamond Storage | 🔲 [#30](https://github.com/jose-compu/curated-erc/issues/30) |
 
@@ -85,7 +85,9 @@ Queued so the next tags do not require another brainstorm. Existing issues stay 
 
 **v0.6.0** — ERC-4626 tokenized vaults. Shipped.
 
-**v0.7.0 utilities** — ERC-5267 EIP-712 domain ([#56](https://github.com/jose-compu/curated-erc/issues/56)), ERC-7751 bubbled reverts ([#34](https://github.com/jose-compu/curated-erc/issues/34)), ERC-8042 diamond storage ([#30](https://github.com/jose-compu/curated-erc/issues/30)).
+**v0.7.0** — ERC-7751 bubbled reverts shipped ([#34](https://github.com/jose-compu/curated-erc/issues/34)).
+
+**v0.7.x utilities (queued)** — ERC-5267 EIP-712 domain ([#56](https://github.com/jose-compu/curated-erc/issues/56)), ERC-8042 diamond storage ([#30](https://github.com/jose-compu/curated-erc/issues/30)).
 
 **Later minors** — ERC-6909 ([#55](https://github.com/jose-compu/curated-erc/issues/55)), ERC-7943 uRWA ([#40](https://github.com/jose-compu/curated-erc/issues/40)), ERC-5006 ([#32](https://github.com/jose-compu/curated-erc/issues/32)).
 

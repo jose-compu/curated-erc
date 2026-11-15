@@ -132,6 +132,19 @@ export const CATALOG = [
     palette: ["#f5f5f0", "#a8a89e", "#5c5c54", "#1a1a18"],
   },
   {
+    id: "erc7751",
+    number: 7751,
+    name: "Wrapped Reverts",
+    category: "Infrastructure hall",
+    wing: "infra",
+    tagline: "Errors with context",
+    description:
+      "EIP-7751 WrappedError bubble-up—target, called selector, raw revert bytes, and optional ABI-encoded details for nested failures.",
+    path: "utils/ERC7751",
+    eip: "https://eips.ethereum.org/EIPS/eip-7751",
+    palette: ["#f5ebe0", "#c9a27a", "#7a4f2e", "#2a1810"],
+  },
+  {
     id: "erc2771",
     number: 2771,
     name: "Meta Transactions",
