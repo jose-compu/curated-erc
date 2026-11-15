@@ -2,11 +2,15 @@
 """Render img/linkedin-release-banner.jpg from the official logo.
 
 Uses vendored Playfair Display (OFL) under assets/fonts/ for identical output
-on Linux and macOS.
+on Linux and macOS. Version text uses lining figures (+lnum via libraqm when
+available; otherwise GFSDidot-Regular.ttf for the version line only).
 
 Usage:
   python3 scripts/render-linkedin-banner.py
   python3 scripts/render-linkedin-banner.py --version 0.7.0 --subtitle "ERC-7751 wrapped reverts"
+  python3 scripts/render-linkedin-banner.py --version 0.7.0 \\
+    --subtitle "ERC-7751 wrapped reverts" \\
+    --detail "Failed inner calls now revert with WrappedError, keeping the target, selector and original revert reason."
 """
 from __future__ import annotations
 
@@ -14,10 +18,12 @@ import argparse
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
+from PIL import features as pil_features
 
 ROOT = Path(__file__).resolve().parents[1]
 FONT_DIR = ROOT / "assets" / "fonts"
 PLAYFAIR = FONT_DIR / "PlayfairDisplay[wght].ttf"
+VERSION_FALLBACK = FONT_DIR / "GFSDidot-Regular.ttf"
 LOGO = ROOT / "img" / "logo.jpg"
 OUT = ROOT / "img" / "linkedin-release-banner.jpg"
 
@@ -25,27 +31,44 @@ W, H = 1200, 627
 BG = (245, 242, 236)
 INK = (18, 18, 18)
 MUTED = (70, 64, 56)
+DETAIL = (58, 54, 48)
 FOOT = (90, 84, 76)
 GOLD = (184, 149, 80)
 
 TEXT_X = 620
 TEXT_MAX_W = W - TEXT_X - 56
 LINE = 1.28
+FOOT_Y = H - 68
+FOOT_CLEARANCE = 24
+
+_HAS_RAQM = pil_features.check("raqm")
 
 
 def playfair(size: int, weight: int) -> ImageFont.FreeTypeFont:
     if not PLAYFAIR.is_file():
         raise FileNotFoundError(f"Missing vendored font: {PLAYFAIR}")
-    font = ImageFont.truetype(PLAYFAIR, size)
+    kwargs: dict = {}
+    if _HAS_RAQM:
+        kwargs["layout_engine"] = ImageFont.Layout.RAQM
+    font = ImageFont.truetype(PLAYFAIR, size, **kwargs)
     font.set_variation_by_axes([weight])
     return font
+
+
+def version_font(size: int, weight: int) -> ImageFont.FreeTypeFont:
+    """Version line: lining figures (not oldstyle v/o-shaped digits)."""
+    if _HAS_RAQM:
+        return playfair(size, weight)
+    if VERSION_FALLBACK.is_file():
+        return ImageFont.truetype(VERSION_FALLBACK, size)
+    return playfair(size, weight)
 
 
 def text_width(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont) -> float:
     return draw.textlength(text, font=font)
 
 
-def wrap_subtitle(
+def wrap_text(
     draw: ImageDraw.ImageDraw, text: str, font: ImageFont.FreeTypeFont, max_width: float
 ) -> list[str]:
     words = text.split()
@@ -69,19 +92,50 @@ def fit_subtitle(
 ) -> tuple[ImageFont.FreeTypeFont, list[str]]:
     for size, weight in ((36, 600), (34, 600), (32, 500), (30, 500)):
         font = playfair(size, weight)
-        lines = wrap_subtitle(draw, text, font, TEXT_MAX_W)
+        lines = wrap_text(draw, text, font, TEXT_MAX_W)
         line_h = size * LINE
         block_h = line_h * len(lines)
         if block_h <= 120 and len(lines) <= 2:
             return font, lines
     font = playfair(30, 500)
-    return font, wrap_subtitle(draw, text, font, TEXT_MAX_W)
+    return font, wrap_text(draw, text, font, TEXT_MAX_W)
+
+
+def fit_detail(
+    draw: ImageDraw.ImageDraw, text: str, start_y: float
+) -> tuple[ImageFont.FreeTypeFont, list[str]]:
+    max_bottom = FOOT_Y - FOOT_CLEARANCE
+    for size, weight in ((28, 500), (27, 500), (26, 400)):
+        font = playfair(size, weight)
+        lines = wrap_text(draw, text, font, TEXT_MAX_W)
+        if len(lines) > 2:
+            continue
+        line_h = size * LINE
+        if start_y + line_h * len(lines) <= max_bottom:
+            return font, lines[:2]
+    font = playfair(26, 400)
+    lines = wrap_text(draw, text, font, TEXT_MAX_W)[:2]
+    return font, lines
+
+
+def draw_version(
+    draw: ImageDraw.ImageDraw, xy: tuple[float, float], version: str, font: ImageFont.FreeTypeFont
+) -> None:
+    if _HAS_RAQM:
+        draw.text(xy, version, font=font, fill=INK, features=["+lnum"])
+    else:
+        draw.text(xy, version, font=font, fill=INK)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--version", default="vX.Y.Z")
-    parser.add_argument("--subtitle", default="Foundry-native ERC library")
+    parser = argparse.ArgumentParser(description="Render the LinkedIn release banner JPEG.")
+    parser.add_argument("--version", default="vX.Y.Z", help="Release version (v prefix optional)")
+    parser.add_argument("--subtitle", default="Foundry-native ERC library", help="Primary release line")
+    parser.add_argument(
+        "--detail",
+        default="",
+        help="Optional one-sentence improvement summary (max 2 lines, Playfair)",
+    )
     parser.add_argument("--url", default="github.com/jose-compu/curated-erc")
     args = parser.parse_args()
     version = args.version if args.version.startswith("v") else f"v{args.version}"
@@ -95,17 +149,17 @@ def main() -> None:
 
     draw = ImageDraw.Draw(canvas)
     title_font = playfair(54, 700)
-    version_font = playfair(36, 600)
+    version_f = version_font(36, 600)
     subtitle_font, subtitle_lines = fit_subtitle(draw, args.subtitle)
     foot_font = playfair(19, 400)
 
-    ty = 178
+    ty = 168 if args.detail.strip() else 178
     draw.text((TEXT_X, ty), "NEW RELEASE", font=title_font, fill=INK)
     rule_y = ty + 70
     draw.line((TEXT_X, rule_y, TEXT_X + 420, rule_y), fill=GOLD, width=2)
 
     vy = rule_y + 28
-    draw.text((TEXT_X, vy), version, font=version_font, fill=INK)
+    draw_version(draw, (TEXT_X, vy), version, version_f)
 
     sub_y = vy + 50
     sub_line_h = subtitle_font.size * LINE
@@ -113,7 +167,16 @@ def main() -> None:
         draw.text((TEXT_X, int(sub_y)), line, font=subtitle_font, fill=MUTED)
         sub_y += sub_line_h
 
-    draw.text((TEXT_X, H - 68), args.url, font=foot_font, fill=FOOT)
+    detail_text = args.detail.strip()
+    if detail_text:
+        detail_font, detail_lines = fit_detail(draw, detail_text, sub_y + 14)
+        detail_y = sub_y + 14
+        detail_line_h = detail_font.size * LINE
+        for line in detail_lines:
+            draw.text((TEXT_X, int(detail_y)), line, font=detail_font, fill=DETAIL)
+            detail_y += detail_line_h
+
+    draw.text((TEXT_X, FOOT_Y), args.url, font=foot_font, fill=FOOT)
 
     canvas.save(OUT, "JPEG", quality=92, optimize=True)
     print(f"wrote {OUT}")

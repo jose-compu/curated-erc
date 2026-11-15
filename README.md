@@ -8,7 +8,15 @@
 
 Canonical implementations of ERCs with real on-chain traction. Foundry-native, Solidity-tested.
 
-Release banner (v0.7.0): [`img/linkedin-release-banner.jpg`](img/linkedin-release-banner.jpg).
+Release banner (v0.7.0): [`img/linkedin-release-banner.jpg`](img/linkedin-release-banner.jpg). Regenerate with:
+
+```bash
+python3 scripts/render-linkedin-banner.py --version 0.7.0 \
+  --subtitle "ERC-7751 wrapped reverts" \
+  --detail "Failed inner calls now revert with WrappedError, keeping the target, selector and original revert reason."
+```
+
+Optional `--detail` adds a short improvement line under the subtitle. Version uses lining figures (`+lnum` when libraqm is available).
 
 ## The Gap
 
