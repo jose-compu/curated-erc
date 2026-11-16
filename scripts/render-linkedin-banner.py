@@ -45,6 +45,9 @@ MAT = (235, 230, 222)
 TEXT_X = 620
 LEFT_X = 56
 LEFT_MAX_W = TEXT_X - LEFT_X - 48
+ERC_MARK_HEIGHT = 120
+ERC_MARK_MARGIN = 36
+
 TEXT_MAX_W = W - TEXT_X - 56
 LINE = 1.28
 FOOT_Y = H - 68
@@ -177,12 +180,16 @@ def paste_logo_panel(canvas: Image.Image) -> None:
     canvas.paste(logo, (LEFT_X, (H - logo.height) // 2))
 
 
-def paste_discreet_mark(canvas: Image.Image, height: int = 48) -> None:
+def paste_discreet_mark(canvas: Image.Image, height: int = ERC_MARK_HEIGHT) -> None:
+    """Top-right brand mark for --erc-image banners (legible at LinkedIn feed scale)."""
     logo = Image.open(LOGO).convert("RGB")
     ratio = height / logo.height
     logo = logo.resize((int(logo.width * ratio), height), Image.Resampling.LANCZOS)
-    x = W - logo.width - 40
-    y = 36
+    x = W - logo.width - ERC_MARK_MARGIN
+    y = ERC_MARK_MARGIN
+    # Keep clear of the right-hand headline block (NEW RELEASE starts near TEXT_X).
+    if x < TEXT_X + 12:
+        x = TEXT_X + 12
     canvas.paste(logo, (x, y))
 
 
@@ -220,7 +227,7 @@ def main() -> None:
         default="",
         metavar="PATH",
         help="For new-ERC releases: surrealist painting for the left panel (960×1440 JPEG); "
-        "shows a framed artwork instead of the large logo and adds a small brand mark.",
+        "shows a framed artwork instead of the large logo and adds a discreet top-right brand mark.",
     )
     args = parser.parse_args()
     version = args.version if args.version.startswith("v") else f"v{args.version}"
