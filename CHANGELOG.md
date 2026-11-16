@@ -6,6 +6,12 @@
 
 - **npm** — Trusted Publishing via `.github/workflows/publish.yml`: tag push `v*.*.*`; `workflow_dispatch` with `tag` input; merge-to-`main` trigger when [`.github/npm-publish-tag`](.github/npm-publish-tag) changes (legacy tags: checkout tag + overlay tooling from `main`).
 
+## [0.8.0] — 2026-11-16
+
+### Added
+
+- **ERC-5267** — EIP-712 domain retrieval: `IERC5267`, `ERC5267`, and `ERC5267Upgradeable` with `eip712Domain()` and `EIP712DomainChanged` on name or version updates ([#56](https://github.com/jose-compu/curated-erc/issues/56))
+
 ## [0.7.0] — 2026-11-15
 
 ### Added

@@ -132,6 +132,19 @@ export const CATALOG = [
     palette: ["#f5f5f0", "#a8a89e", "#5c5c54", "#1a1a18"],
   },
   {
+    id: "erc5267",
+    number: 5267,
+    name: "EIP-712 Domain Retrieval",
+    category: "Cryptography wing",
+    wing: "crypto",
+    tagline: "Typed data domains",
+    description:
+      "eip712Domain returns name, version, chain id, and verifying contract—and emits when the name or version changes.",
+    path: "utils/cryptography/ERC5267",
+    eip: "https://eips.ethereum.org/EIPS/eip-5267",
+    palette: ["#e8eef5", "#8fa4bd", "#4a5f78", "#1a2430"],
+  },
+  {
     id: "erc7751",
     number: 7751,
     name: "Wrapped Reverts",

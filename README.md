@@ -4,16 +4,16 @@
 
 # Curated ERC
 
-> v0.7.0
+> v0.8.0
 
 Canonical implementations of ERCs with real on-chain traction. Foundry-native, Solidity-tested.
 
-Release banner (v0.7.0): [`img/linkedin-release-banner.jpg`](img/linkedin-release-banner.jpg). Regenerate with:
+Release banner (v0.8.0): [`img/linkedin-release-banner.jpg`](img/linkedin-release-banner.jpg). Regenerate with:
 
 ```bash
-python3 scripts/render-linkedin-banner.py --version 0.7.0 \
-  --subtitle "ERC-7751 wrapped reverts" \
-  --detail "Failed inner calls now revert with WrappedError, keeping the target, selector and original revert reason."
+python3 scripts/render-linkedin-banner.py --version 0.8.0 \
+  --subtitle "ERC-5267 EIP-712 domains" \
+  --detail "eip712Domain returns the name, version, chain id, and verifying contract, and emits EIP712DomainChanged when that name or version changes."
 ```
 
 Optional `--detail` adds a short improvement line under the subtitle (up to 3 lines; full text required). Lining figures via `+lnum` when libraqm is available, else `GFSDidot-Regular.ttf` for lines with digits.
@@ -43,6 +43,7 @@ Curated ERC Contracts fills that gap.
 | 2309 | Consecutive Transfer (Batch Mint) | Token (ERC-721 extension) |
 | 3525 | Semi-Fungible Token | Token (ERC-721 compatible) |
 | 1271 | Signature Validation for Contracts | Cryptography |
+| 5267 | EIP-712 Domain Retrieval | Cryptography |
 | 6492 | Predeploy Signature Validation | Cryptography |
 | 7751 | Wrapping of Bubbled Reverts | Utils / Error handling |
 | 2771 | Meta Transactions | Context / Gasless UX |
@@ -54,7 +55,7 @@ Curated ERC Contracts fills that gap.
 | 7818 | Expirable ERC-20 | Token (ERC-20 extension) |
 | 8004 | Trustless Agents | AI Agents (identity, reputation, validation) |
 
-18 standards implemented (non-upgradeable + upgradeable where applicable). Full plan across 40+ ERCs in [ROADMAP.md](./ROADMAP.md). Release history in [CHANGELOG.md](./CHANGELOG.md).
+19 standards implemented (non-upgradeable + upgradeable where applicable). Full plan across 40+ ERCs in [ROADMAP.md](./ROADMAP.md). Release history in [CHANGELOG.md](./CHANGELOG.md).
 
 ## Structure
 
@@ -83,7 +84,7 @@ src/
 │   ├── ERC8004ReputationRegistry(.sol|Upgradeable.sol)
 │   └── ERC8004ValidationRegistry(.sol|Upgradeable.sol)
 └── utils/
-    ├── cryptography/     # ERC-1271 + ERC-6492 Signature validation
+    ├── cryptography/     # ERC-1271, ERC-5267, ERC-6492 Signature validation
     ├── ERC7751.sol       # ERC-7751 bubbled revert wrapping
     └── StorageSlot7201.sol
 ```
@@ -154,6 +155,18 @@ address user = SIWE.verify(params);
 // Or use the standalone verifier (emits SIWEVerified)
 SIWEVerifier verifier = new SIWEVerifier();
 address user = verifier.verify(params);
+```
+
+ERC-4361 (SIWE) stays on ERC-191; permit-style tokens can inherit **ERC-5267** for EIP-712 domain retrieval instead.
+
+**ERC-5267 (EIP-712 domain)** — expose domain fields for wallets and indexers:
+
+```solidity
+import {ERC5267} from "curated-erc/utils/cryptography/ERC5267.sol";
+
+contract MyPermitToken is ERC20, ERC5267 {
+    constructor() ERC20("MyToken", "MTK") ERC5267("MyToken", "1") {}
+}
 ```
 
 **ERC-7818 (Expirable ERC-20)** — tokens expire by epoch; `balanceOf` excludes expired buckets:
@@ -283,7 +296,7 @@ Hardhat will compile the contracts in `node_modules/curated-erc` when resolving 
 ```bash
 forge install
 forge build    # via-ir enabled for stack-heavy registry contracts
-forge test -vv # 416 tests (unit + fuzz)
+forge test -vv # 426 tests (unit + fuzz)
 ```
 
 ## npm publishing
