@@ -13,10 +13,11 @@ Release banner (v0.8.0): [`img/linkedin-release-banner.jpg`](img/linkedin-releas
 ```bash
 python3 scripts/render-linkedin-banner.py --version 0.8.0 \
   --subtitle "ERC-5267 EIP-712 domains" \
-  --detail "eip712Domain returns the name, version, chain id, and verifying contract, and emits EIP712DomainChanged when that name or version changes."
+  --detail "eip712Domain returns the name, version, chain id, and verifying contract, and emits EIP712DomainChanged when that name or version changes." \
+  --erc-image website/img/ercs/erc5267.jpg
 ```
 
-Optional `--detail` adds a short improvement line under the subtitle (up to 3 lines; full text required). Lining figures via `+lnum` when libraqm is available, else `GFSDidot-Regular.ttf` for lines with digits.
+Optional `--detail` adds a short improvement line under the subtitle (up to 3 lines; full text required). For releases that add a **new ERC**, pass `--erc-image website/img/ercs/<id>.jpg` so the left panel shows that ERC’s surrealist painting in a thin frame instead of the large logo, with a small Curated ERC mark in the top-right. Without `--erc-image`, the banner stays unchanged (large logo on the left). Lining figures via `+lnum` when libraqm is available, else `GFSDidot-Regular.ttf` for lines with digits.
 
 ## The Gap
 
