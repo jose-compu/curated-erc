@@ -12,6 +12,10 @@ Usage:
   python3 scripts/render-linkedin-banner.py --version 0.7.0 \\
     --subtitle "ERC-7751 wrapped reverts" \\
     --detail "Failed inner calls now revert with WrappedError, keeping the target, selector and original revert reason."
+  python3 scripts/render-linkedin-banner.py --version 0.8.0 \\
+    --subtitle "ERC-5267 EIP-712 domains" \\
+    --detail "..." \\
+    --erc-image website/img/ercs/erc5267.jpg
 """
 from __future__ import annotations
 
@@ -35,8 +39,12 @@ MUTED = (70, 64, 56)
 DETAIL = (58, 54, 48)
 FOOT = (90, 84, 76)
 GOLD = (184, 149, 80)
+FRAME = (48, 44, 40)
+MAT = (235, 230, 222)
 
 TEXT_X = 620
+LEFT_X = 56
+LEFT_MAX_W = TEXT_X - LEFT_X - 48
 TEXT_MAX_W = W - TEXT_X - 56
 LINE = 1.28
 FOOT_Y = H - 68
@@ -140,6 +148,44 @@ def fit_subtitle(
     return font, lines
 
 
+def paste_framed_erc_art(canvas: Image.Image, erc_path: Path) -> None:
+    art = Image.open(erc_path).convert("RGB")
+    max_h = 500
+    ratio = min(max_h / art.height, LEFT_MAX_W / art.width)
+    nw, nh = int(art.width * ratio), int(art.height * ratio)
+    art = art.resize((nw, nh), Image.Resampling.LANCZOS)
+
+    mat_px = 10
+    frame_px = 3
+    fw = nw + 2 * mat_px + 2 * frame_px
+    fh = nh + 2 * mat_px + 2 * frame_px
+    framed = Image.new("RGB", (fw, fh), FRAME)
+    mat_layer = Image.new("RGB", (nw + 2 * mat_px, nh + 2 * mat_px), MAT)
+    framed.paste(mat_layer, (frame_px, frame_px))
+    framed.paste(art, (frame_px + mat_px, frame_px + mat_px))
+
+    x = LEFT_X + (LEFT_MAX_W - fw) // 2
+    y = (H - fh) // 2
+    canvas.paste(framed, (x, y))
+
+
+def paste_logo_panel(canvas: Image.Image) -> None:
+    logo = Image.open(LOGO).convert("RGB")
+    max_logo = 500
+    ratio = min(max_logo / logo.width, max_logo / logo.height)
+    logo = logo.resize((int(logo.width * ratio), int(logo.height * ratio)), Image.Resampling.LANCZOS)
+    canvas.paste(logo, (LEFT_X, (H - logo.height) // 2))
+
+
+def paste_discreet_mark(canvas: Image.Image, height: int = 48) -> None:
+    logo = Image.open(LOGO).convert("RGB")
+    ratio = height / logo.height
+    logo = logo.resize((int(logo.width * ratio), height), Image.Resampling.LANCZOS)
+    x = W - logo.width - 40
+    y = 36
+    canvas.paste(logo, (x, y))
+
+
 def fit_detail(
     draw: ImageDraw.ImageDraw, text: str, start_y: float
 ) -> tuple[ImageFont.FreeTypeFont, list[str]]:
@@ -169,15 +215,27 @@ def main() -> None:
         help="Optional one-sentence improvement summary (up to 3 lines, Playfair)",
     )
     parser.add_argument("--url", default="github.com/jose-compu/curated-erc")
+    parser.add_argument(
+        "--erc-image",
+        default="",
+        metavar="PATH",
+        help="For new-ERC releases: surrealist painting for the left panel (960×1440 JPEG); "
+        "shows a framed artwork instead of the large logo and adds a small brand mark.",
+    )
     args = parser.parse_args()
     version = args.version if args.version.startswith("v") else f"v{args.version}"
 
     canvas = Image.new("RGB", (W, H), BG)
-    logo = Image.open(LOGO).convert("RGB")
-    max_logo = 500
-    ratio = min(max_logo / logo.width, max_logo / logo.height)
-    logo = logo.resize((int(logo.width * ratio), int(logo.height * ratio)), Image.Resampling.LANCZOS)
-    canvas.paste(logo, (56, (H - logo.height) // 2))
+    if args.erc_image.strip():
+        erc_path = Path(args.erc_image)
+        if not erc_path.is_absolute():
+            erc_path = ROOT / erc_path
+        if not erc_path.is_file():
+            raise SystemExit(f"--erc-image not found: {erc_path}")
+        paste_framed_erc_art(canvas, erc_path)
+        paste_discreet_mark(canvas)
+    else:
+        paste_logo_panel(canvas)
 
     draw = ImageDraw.Draw(canvas)
     title_font = playfair(54, 700)
