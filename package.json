@@ -1,6 +1,6 @@
 {
   "name": "curated-erc",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Reference implementations of ERCs with real on-chain traction. Foundry-native, Solidity-tested.",
   "license": "MIT",
   "repository": {
@@ -22,6 +22,7 @@
     "erc7818",
     "erc8004",
     "erc5267",
+    "erc8042",
     "foundry"
   ],
   "files": [
