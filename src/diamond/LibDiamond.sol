@@ -8,7 +8,9 @@ import {StorageSlot7201} from "../utils/StorageSlot7201.sol";
 /**
  * @title LibDiamond
  * @dev Internal storage and diamond cut logic for EIP-2535 Diamonds.
- * Storage uses ERC-7201 namespaced slot to avoid clashes.
+ * Storage uses ERC-7201 namespaced slot to avoid clashes. Diamond bookkeeping
+ * stays on ERC-7201; facet-specific storage in new facets should use ERC-8042
+ * (`ERC8042.erc8042Slot`) with a project-prefixed identifier.
  */
 library LibDiamond {
     function _diamondStorageSlot() private pure returns (bytes32) {

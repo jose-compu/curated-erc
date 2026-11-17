@@ -62,7 +62,7 @@ Status is refreshed against **Final** ERCs with 2026 on-chain / protocol tractio
 | 3475 | Abstract Storage Bonds | 🔲 [#58](https://github.com/jose-compu/curated-erc/issues/58) |
 | 7751 | Wrapping Bubbled Reverts | ✅ Done (v0.7.0) |
 | 7818 | Expirable ERC-20 | ✅ Done |
-| 8042 | Diamond Storage | 🔲 [#30](https://github.com/jose-compu/curated-erc/issues/30) |
+| 8042 | Diamond Storage | ✅ Done (v0.9.0) |
 
 ## Phase 6 — Watchlist (high 2026 traction, not Final yet)
 
@@ -89,9 +89,11 @@ Queued so the next tags do not require another brainstorm. Existing issues stay 
 
 **v0.8.0** — ERC-5267 EIP-712 domain shipped ([#56](https://github.com/jose-compu/curated-erc/issues/56)).
 
-**Next** — ERC-8042 diamond storage ([#30](https://github.com/jose-compu/curated-erc/issues/30)).
+**v0.9.0** — ERC-8042 diamond storage shipped ([#30](https://github.com/jose-compu/curated-erc/issues/30)).
 
-**Later minors** — ERC-6909 ([#55](https://github.com/jose-compu/curated-erc/issues/55)), ERC-7943 uRWA ([#40](https://github.com/jose-compu/curated-erc/issues/40)), ERC-5006 ([#32](https://github.com/jose-compu/curated-erc/issues/32)).
+**Next** — ERC-6909 ([#55](https://github.com/jose-compu/curated-erc/issues/55)).
+
+**Later minors** — ERC-7943 uRWA ([#40](https://github.com/jose-compu/curated-erc/issues/40)), ERC-5006 ([#32](https://github.com/jose-compu/curated-erc/issues/32)).
 
 **v1.0.0** — SECURITY.md ([#12](https://github.com/jose-compu/curated-erc/issues/12)), token invariants ([#8](https://github.com/jose-compu/curated-erc/issues/8)), upgrade lifecycle tests ([#15](https://github.com/jose-compu/curated-erc/issues/15)).
 

@@ -4,17 +4,17 @@
 
 # Curated ERC
 
-> v0.8.0
+> v0.9.0
 
 Canonical implementations of ERCs with real on-chain traction. Foundry-native, Solidity-tested.
 
-Release banner (v0.8.0): [`img/linkedin-release-banner.jpg`](img/linkedin-release-banner.jpg). Regenerate with:
+Release banner (v0.9.0): [`img/linkedin-release-banner.jpg`](img/linkedin-release-banner.jpg). Regenerate with:
 
 ```bash
-python3 scripts/render-linkedin-banner.py --version 0.8.0 \
-  --subtitle "ERC-5267 EIP-712 domains" \
-  --detail "eip712Domain returns the name, version, chain id, and verifying contract, and emits EIP712DomainChanged when that name or version changes." \
-  --erc-image website/img/ercs/erc5267.jpg
+python3 scripts/render-linkedin-banner.py --version 0.9.0 \
+  --subtitle "ERC-8042 diamond storage" \
+  --detail "erc8042Slot returns keccak256 of a printable ASCII id and reverts when any byte falls outside 0x20 to 0x7E." \
+  --erc-image website/img/ercs/erc8042.jpg
 ```
 
 Optional `--detail` adds a short improvement line under the subtitle (up to 3 lines; full text required). For releases that add a **new ERC**, pass `--erc-image website/img/ercs/<id>.jpg` so the left panel shows that ERC’s surrealist painting in a thin frame instead of the large logo, with a small Curated ERC mark in the top-right. Without `--erc-image`, the banner stays unchanged (large logo on the left). Lining figures via `+lnum` when libraqm is available, else `GFSDidot-Regular.ttf` for lines with digits.
@@ -51,12 +51,13 @@ Curated ERC Contracts fills that gap.
 | 3156 | Flash Loans | DeFi / Finance |
 | 4626 | Tokenized Vaults | DeFi / Finance |
 | 7201 | Namespaced Storage Layout | Utils / Upgrades |
+| 8042 | Diamond Storage | Utils / Upgrades |
 | 2535 | Diamonds (Multi-Facet Proxy) | Proxy / Upgrades |
 | 4361 | Sign-In with Ethereum | Auth / Identity |
 | 7818 | Expirable ERC-20 | Token (ERC-20 extension) |
 | 8004 | Trustless Agents | AI Agents (identity, reputation, validation) |
 
-19 standards implemented (non-upgradeable + upgradeable where applicable). Full plan across 40+ ERCs in [ROADMAP.md](./ROADMAP.md). Release history in [CHANGELOG.md](./CHANGELOG.md).
+20 standards implemented (non-upgradeable + upgradeable where applicable). Full plan across 40+ ERCs in [ROADMAP.md](./ROADMAP.md). Release history in [CHANGELOG.md](./CHANGELOG.md).
 
 ## Structure
 
@@ -87,6 +88,7 @@ src/
 └── utils/
     ├── cryptography/     # ERC-1271, ERC-5267, ERC-6492 Signature validation
     ├── ERC7751.sol       # ERC-7751 bubbled revert wrapping
+    ├── ERC8042.sol       # ERC-8042 diamond storage slots
     └── StorageSlot7201.sol
 ```
 
@@ -95,7 +97,7 @@ Each ERC typically ships as:
 - `ERC*.sol` — Non-upgradeable implementation (abstract base or deployable contract)
 - `ERC*Upgradeable.sol` — Upgradeable (Initializable + ERC-7201 namespaced storage)
 
-Exceptions: **ERC-4361** exposes a library (`SIWE`) plus `SIWEParser` and `SIWEVerifier`; **ERC-6492**, **ERC-7201**, and **ERC-7751** are libraries/utilities; **ERC-8004** ships three deployable registry contracts per variant.
+Exceptions: **ERC-4361** exposes a library (`SIWE`) plus `SIWEParser` and `SIWEVerifier`; **ERC-6492**, **ERC-7201**, **ERC-7751**, and **ERC-8042** are libraries/utilities; **ERC-8004** ships three deployable registry contracts per variant.
 
 ## Installation
 
@@ -231,6 +233,15 @@ try token.transfer(to, amount) {} catch (bytes memory err) {
 }
 ```
 
+**ERC-8042 (Diamond storage)** — namespaced slots for diamond facets:
+
+```solidity
+import {ERC8042} from "curated-erc/utils/ERC8042.sol";
+
+bytes32 slot = ERC8042.erc8042Slot("myproject.erc721.registry");
+// Production: bytes32 constant SLOT = keccak256("myproject.erc721.registry");
+```
+
 ### Hardhat
 
 The recommended path is the [`@nomicfoundation/hardhat-foundry`](https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-foundry) plugin, which lets Hardhat read `remappings.txt` and resolve imports from the `lib/` folder directly — no duplicate OpenZeppelin installs.
@@ -297,7 +308,7 @@ Hardhat will compile the contracts in `node_modules/curated-erc` when resolving 
 ```bash
 forge install
 forge build    # via-ir enabled for stack-heavy registry contracts
-forge test -vv # 426 tests (unit + fuzz)
+forge test -vv # 436 tests (unit + fuzz)
 ```
 
 ## npm publishing

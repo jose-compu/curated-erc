@@ -209,6 +209,19 @@ export const CATALOG = [
     palette: ["#f0f4f8", "#94a3b8", "#475569", "#1e293b"],
   },
   {
+    id: "erc8042",
+    number: 8042,
+    name: "Diamond Storage",
+    category: "Infrastructure hall",
+    wing: "infra",
+    tagline: "Named storage rooms",
+    description:
+      "keccak256 of a printable ASCII identifier locates a struct. Bytes outside 0x20 to 0x7E revert. Distinct from the ERC-7201 formula.",
+    path: "utils/ERC8042",
+    eip: "https://eips.ethereum.org/EIPS/eip-8042",
+    palette: ["#f4eef8", "#b794d4", "#6b3f8a", "#241430"],
+  },
+  {
     id: "erc2535",
     number: 2535,
     name: "Diamonds",
