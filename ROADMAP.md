@@ -44,7 +44,7 @@ Status is refreshed against **Final** ERCs with 2026 on-chain / protocol tractio
 | 7575 | Multi-Asset ERC-4626 Vaults | 🔲 [#25](https://github.com/jose-compu/curated-erc/issues/25) |
 | 5006 | Rental NFT (ERC-1155) | 🔲 [#32](https://github.com/jose-compu/curated-erc/issues/32) |
 | 3668 | CCIP Read (Offchain Data) | 🔲 [#26](https://github.com/jose-compu/curated-erc/issues/26) |
-| 6909 | Minimal Multi-Token Interface | 🔲 [#55](https://github.com/jose-compu/curated-erc/issues/55) |
+| 6909 | Minimal Multi-Token Interface | ✅ Done (v0.10.0) |
 | 5267 | EIP-712 Domain Retrieval | ✅ Done (v0.8.0) |
 
 ## Phase 4 — AI Agents & Agentic Economy
@@ -91,9 +91,11 @@ Queued so the next tags do not require another brainstorm. Existing issues stay 
 
 **v0.9.0** — ERC-8042 diamond storage shipped ([#30](https://github.com/jose-compu/curated-erc/issues/30)).
 
-**Next** — ERC-6909 ([#55](https://github.com/jose-compu/curated-erc/issues/55)).
+**v0.10.0** — ERC-6909 minimal multi-token interface shipped ([#55](https://github.com/jose-compu/curated-erc/issues/55)).
 
-**Later minors** — ERC-7943 uRWA ([#40](https://github.com/jose-compu/curated-erc/issues/40)), ERC-5006 ([#32](https://github.com/jose-compu/curated-erc/issues/32)).
+**Next** — ERC-7943 uRWA ([#40](https://github.com/jose-compu/curated-erc/issues/40)).
+
+**Later minors** — ERC-5006 ([#32](https://github.com/jose-compu/curated-erc/issues/32)).
 
 **v1.0.0** — SECURITY.md ([#12](https://github.com/jose-compu/curated-erc/issues/12)), token invariants ([#8](https://github.com/jose-compu/curated-erc/issues/8)), upgrade lifecycle tests ([#15](https://github.com/jose-compu/curated-erc/issues/15)).
 

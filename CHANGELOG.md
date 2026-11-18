@@ -6,6 +6,12 @@
 
 - **npm** — Trusted Publishing via `.github/workflows/publish.yml`: tag push `v*.*.*`; `workflow_dispatch` with `tag` input; merge-to-`main` trigger when [`.github/npm-publish-tag`](.github/npm-publish-tag) changes (legacy tags: checkout tag + overlay tooling from `main`).
 
+## [0.10.0] — 2026-11-18
+
+### Added
+
+- **ERC-6909** — Minimal Multi-Token Interface: `IERC6909`, `ERC6909`, and `ERC6909Upgradeable` with per-id balances, allowances, and operators ([#55](https://github.com/jose-compu/curated-erc/issues/55))
+
 ## [0.9.0] — 2026-11-17
 
 ### Added
