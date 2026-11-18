@@ -4,17 +4,17 @@
 
 # Curated ERC
 
-> v0.9.0
+> v0.10.0
 
 Canonical implementations of ERCs with real on-chain traction. Foundry-native, Solidity-tested.
 
-Release banner (v0.9.0): [`img/linkedin-release-banner.jpg`](img/linkedin-release-banner.jpg). Regenerate with:
+Release banner (v0.10.0): [`img/linkedin-release-banner.jpg`](img/linkedin-release-banner.jpg). Regenerate with:
 
 ```bash
-python3 scripts/render-linkedin-banner.py --version 0.9.0 \
-  --subtitle "ERC-8042 diamond storage" \
-  --detail "erc8042Slot returns keccak256 of a printable ASCII id and reverts when any byte falls outside 0x20 to 0x7E." \
-  --erc-image website/img/ercs/erc8042.jpg
+python3 scripts/render-linkedin-banner.py --version 0.10.0 \
+  --subtitle "ERC-6909 multi-token" \
+  --detail "transferFrom spends a per-id allowance, skips it for the sender or an operator, and leaves a max uint256 allowance unchanged." \
+  --erc-image website/img/ercs/erc6909.jpg
 ```
 
 Optional `--detail` adds a short improvement line under the subtitle (up to 3 lines; full text required). For releases that add a **new ERC**, pass `--erc-image website/img/ercs/<id>.jpg` so the left panel shows that ERC’s surrealist painting in a thin frame instead of the large logo, with a small Curated ERC mark in the top-right. Without `--erc-image`, the banner stays unchanged (large logo on the left). Lining figures via `+lnum` when libraqm is available, else `GFSDidot-Regular.ttf` for lines with digits.
@@ -43,6 +43,7 @@ Curated ERC Contracts fills that gap.
 | 5484 | Consensual Soulbound Tokens | Token (ERC-721 extension) |
 | 2309 | Consecutive Transfer (Batch Mint) | Token (ERC-721 extension) |
 | 3525 | Semi-Fungible Token | Token (ERC-721 compatible) |
+| 6909 | Minimal Multi-Token Interface | Token |
 | 1271 | Signature Validation for Contracts | Cryptography |
 | 5267 | EIP-712 Domain Retrieval | Cryptography |
 | 6492 | Predeploy Signature Validation | Cryptography |
@@ -57,7 +58,7 @@ Curated ERC Contracts fills that gap.
 | 7818 | Expirable ERC-20 | Token (ERC-20 extension) |
 | 8004 | Trustless Agents | AI Agents (identity, reputation, validation) |
 
-20 standards implemented (non-upgradeable + upgradeable where applicable). Full plan across 40+ ERCs in [ROADMAP.md](./ROADMAP.md). Release history in [CHANGELOG.md](./CHANGELOG.md).
+21 standards implemented (non-upgradeable + upgradeable where applicable). Full plan across 40+ ERCs in [ROADMAP.md](./ROADMAP.md). Release history in [CHANGELOG.md](./CHANGELOG.md).
 
 ## Structure
 
@@ -68,6 +69,7 @@ src/
 │   ├── ERC2309/          # Consecutive Transfer (batch minting)
 │   ├── ERC4906/          # Metadata Update Extension
 │   ├── ERC3525/          # Semi-Fungible Token (slot + value model)
+│   ├── ERC6909/          # Minimal Multi-Token Interface
 │   ├── ERC4907/          # Rental NFT (user/owner split with expiry)
 │   ├── ERC5192/          # Soulbound NFT (non-transferable)
 │   ├── ERC5484/          # Consensual Soulbound Tokens (burn authorization)
@@ -242,6 +244,18 @@ bytes32 slot = ERC8042.erc8042Slot("myproject.erc721.registry");
 // Production: bytes32 constant SLOT = keccak256("myproject.erc721.registry");
 ```
 
+**ERC-6909 (Multi-token)** — balances per owner and token id:
+
+```solidity
+import {ERC6909} from "curated-erc/token/ERC6909/ERC6909.sol";
+
+contract MyMultiToken is ERC6909 {
+    function mint(address to, uint256 id, uint256 amount) external {
+        _mint(to, id, amount);
+    }
+}
+```
+
 ### Hardhat
 
 The recommended path is the [`@nomicfoundation/hardhat-foundry`](https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-foundry) plugin, which lets Hardhat read `remappings.txt` and resolve imports from the `lib/` folder directly — no duplicate OpenZeppelin installs.
@@ -308,7 +322,7 @@ Hardhat will compile the contracts in `node_modules/curated-erc` when resolving 
 ```bash
 forge install
 forge build    # via-ir enabled for stack-heavy registry contracts
-forge test -vv # 436 tests (unit + fuzz)
+forge test -vv # 453 tests (unit + fuzz)
 ```
 
 ## npm publishing

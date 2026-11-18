@@ -93,6 +93,19 @@ export const CATALOG = [
     palette: ["#f8f0e8", "#d4a574", "#8c5c38", "#3d2418"],
   },
   {
+    id: "erc6909",
+    number: 6909,
+    name: "Minimal Multi-Token",
+    category: "Token salon",
+    wing: "token",
+    tagline: "Per-id allowance",
+    description:
+      "Balances per owner and token id, a per-id allowance, and an operator who can move any id. transferFrom leaves a max uint256 allowance unchanged.",
+    path: "token/ERC6909/ERC6909",
+    eip: "https://eips.ethereum.org/EIPS/eip-6909",
+    palette: ["#f6efe2", "#d4b483", "#8a5a2a", "#2a1c10"],
+  },
+  {
     id: "erc7818",
     number: 7818,
     name: "Expirable ERC-20",
