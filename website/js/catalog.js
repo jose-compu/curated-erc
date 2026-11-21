@@ -106,6 +106,19 @@ export const CATALOG = [
     palette: ["#f6efe2", "#d4b483", "#8a5a2a", "#2a1c10"],
   },
   {
+    id: "erc7943",
+    number: 7943,
+    name: "Universal RWA",
+    category: "Token salon",
+    wing: "token",
+    tagline: "Freeze and seize",
+    description:
+      "Freeze and compliance views on ERC-20, ERC-721, and ERC-1155; enforcer forcedTransfer clears frozen balances before the underlying transfer.",
+    path: "token/ERC7943/ERC7943Fungible",
+    eip: "https://eips.ethereum.org/EIPS/eip-7943",
+    palette: ["#f2ece3", "#c9a227", "#5a5f66", "#2a2622"],
+  },
+  {
     id: "erc7818",
     number: 7818,
     name: "Expirable ERC-20",
