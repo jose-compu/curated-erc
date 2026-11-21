@@ -6,6 +6,12 @@
 
 - **npm** — Trusted Publishing via `.github/workflows/publish.yml`: tag push `v*.*.*`; `workflow_dispatch` with `tag` input; merge-to-`main` trigger when [`.github/npm-publish-tag`](.github/npm-publish-tag) changes (legacy tags: checkout tag + overlay tooling from `main`).
 
+## [0.11.0] — 2026-11-21
+
+### Added
+
+- **ERC-7943** — Universal RWA Interface: fungible, non-fungible, and multi-token variants (`IERC7943*`, `ERC7943*`, upgradeable) with freeze, compliance views, and enforcer seizure (closes [#40](https://github.com/jose-compu/curated-erc/issues/40))
+
 ## [0.10.0] — 2026-11-18
 
 ### Added

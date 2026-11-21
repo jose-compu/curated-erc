@@ -30,7 +30,7 @@ Status is refreshed against **Final** ERCs with 2026 on-chain / protocol tractio
 | 7631 | Dual Nature Token Pair (DN404) | 🔲 [#21](https://github.com/jose-compu/curated-erc/issues/21) |
 | 4337 | Account Abstraction (alt-mempool accounts) | 🔲 [#52](https://github.com/jose-compu/curated-erc/issues/52) |
 | 7786 | Cross-Chain Messaging Gateway | 🔲 [#53](https://github.com/jose-compu/curated-erc/issues/53) |
-| 7943 | uRWA Universal RWA Interface | 🔲 [#40](https://github.com/jose-compu/curated-erc/issues/40) |
+| 7943 | uRWA Universal RWA Interface | ✅ Done (v0.11.0) |
 
 ## Phase 3 — Tier 3 (Niche, Growing)
 
@@ -93,9 +93,9 @@ Queued so the next tags do not require another brainstorm. Existing issues stay 
 
 **v0.10.0** — ERC-6909 minimal multi-token interface shipped ([#55](https://github.com/jose-compu/curated-erc/issues/55)).
 
-**Next** — ERC-7943 uRWA ([#40](https://github.com/jose-compu/curated-erc/issues/40)).
+**v0.11.0** — ERC-7943 universal RWA interface shipped ([#40](https://github.com/jose-compu/curated-erc/issues/40)).
 
-**Later minors** — ERC-5006 ([#32](https://github.com/jose-compu/curated-erc/issues/32)).
+**Next** — ERC-5006 ([#32](https://github.com/jose-compu/curated-erc/issues/32)).
 
 **v1.0.0** — SECURITY.md ([#12](https://github.com/jose-compu/curated-erc/issues/12)), token invariants ([#8](https://github.com/jose-compu/curated-erc/issues/8)), upgrade lifecycle tests ([#15](https://github.com/jose-compu/curated-erc/issues/15)).
 
