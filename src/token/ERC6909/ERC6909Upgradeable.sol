@@ -100,9 +100,7 @@ abstract contract ERC6909Upgradeable is Initializable, ContextUpgradeable, IERC6
     function _mint(address receiver, uint256 id, uint256 amount) internal virtual {
         ERC6909Storage storage $ = _getERC6909Storage();
         if (amount != 0) {
-            unchecked {
-                $._balances[receiver][id] += amount;
-            }
+            $._balances[receiver][id] += amount;
         }
         emit Transfer(_msgSender(), address(0), receiver, id, amount);
     }
@@ -127,9 +125,9 @@ abstract contract ERC6909Upgradeable is Initializable, ContextUpgradeable, IERC6
         }
         unchecked {
             $._balances[sender][id] = balance - amount;
-            if (receiver != address(0)) {
-                $._balances[receiver][id] += amount;
-            }
+        }
+        if (receiver != address(0)) {
+            $._balances[receiver][id] += amount;
         }
         emit Transfer(caller, sender, receiver, id, amount);
     }

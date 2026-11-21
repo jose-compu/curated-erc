@@ -13,10 +13,13 @@ import {IERC7943NonFungible} from "./IERC7943NonFungible.sol";
 abstract contract ERC7943NonFungible is ERC721, AccessControl, IERC7943NonFungible {
     bytes32 public constant ENFORCER_ROLE = keccak256("ERC7943_ENFORCER_ROLE");
 
+    error ERC7943InvalidEnforcer();
+
     mapping(uint256 tokenId => bool) private _frozen;
     bool private _enforcerUpdate;
 
     constructor(address enforcer) {
+        if (enforcer == address(0)) revert ERC7943InvalidEnforcer();
         _grantRole(DEFAULT_ADMIN_ROLE, enforcer);
         _grantRole(ENFORCER_ROLE, enforcer);
     }
@@ -55,7 +58,7 @@ abstract contract ERC7943NonFungible is ERC721, AccessControl, IERC7943NonFungib
         }
 
         _enforcerUpdate = true;
-        _update(to, tokenId, msg.sender);
+        _update(to, tokenId, address(0));
         _enforcerUpdate = false;
 
         emit ForcedTransfer(from, to, tokenId);
@@ -89,6 +92,18 @@ abstract contract ERC7943NonFungible is ERC721, AccessControl, IERC7943NonFungib
         return _frozen[tokenId];
     }
 
+    /// @inheritdoc ERC721
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override {
+        address owner = _ownerOf(tokenId);
+        if (owner == address(0)) {
+            revert ERC721NonexistentToken(tokenId);
+        }
+        if (owner != from) {
+            revert ERC721IncorrectOwner(from, tokenId, owner);
+        }
+        super.transferFrom(from, to, tokenId);
+    }
+
     /// @inheritdoc IERC7943NonFungible
     function canTransfer(address from, address to, uint256 tokenId) public view virtual returns (bool) {
         if (!canSend(from) || !canReceive(to)) {
@@ -118,6 +133,9 @@ abstract contract ERC7943NonFungible is ERC721, AccessControl, IERC7943NonFungib
                 if (_frozen[tokenId]) {
                     revert ERC7943InsufficientUnfrozenBalance(from, tokenId);
                 }
+                if (!canTransfer(from, address(0), tokenId)) {
+                    revert ERC7943CannotTransfer(from, address(0), tokenId);
+                }
             } else if (from != address(0) && to != address(0)) {
                 if (_frozen[tokenId]) {
                     revert ERC7943InsufficientUnfrozenBalance(from, tokenId);
@@ -140,9 +158,7 @@ abstract contract ERC7943NonFungible is ERC721, AccessControl, IERC7943NonFungib
     }
 
     function _erc7943Mint(address to, uint256 tokenId) internal virtual {
-        _enforcerUpdate = true;
-        _update(to, tokenId, address(0));
-        _enforcerUpdate = false;
+        _safeMint(to, tokenId);
     }
 
     function _erc7943EnforcerBurn(uint256 tokenId) internal virtual {

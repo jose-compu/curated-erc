@@ -19,6 +19,8 @@ abstract contract ERC7943NonFungibleUpgradeable is
 {
     bytes32 public constant ENFORCER_ROLE = keccak256("ERC7943_ENFORCER_ROLE");
 
+    error ERC7943InvalidEnforcer();
+
     /// @custom:storage-location erc7201:curatedcontracts.storage.ERC7943NonFungible
     struct ERC7943NonFungibleStorage {
         mapping(uint256 tokenId => bool) frozen;
@@ -39,13 +41,14 @@ abstract contract ERC7943NonFungibleUpgradeable is
         _disableInitializers();
     }
 
+    /// @dev The child must call `__ERC721_init` (or equivalent) before this initializer.
     function __ERC7943NonFungible_init(address enforcer) internal onlyInitializing {
-        __ERC721_init("", "");
         __AccessControl_init();
         __ERC7943NonFungible_init_unchained(enforcer);
     }
 
     function __ERC7943NonFungible_init_unchained(address enforcer) internal onlyInitializing {
+        if (enforcer == address(0)) revert ERC7943InvalidEnforcer();
         _grantRole(DEFAULT_ADMIN_ROLE, enforcer);
         _grantRole(ENFORCER_ROLE, enforcer);
     }
@@ -85,7 +88,7 @@ abstract contract ERC7943NonFungibleUpgradeable is
         }
 
         $.enforcerUpdate = true;
-        _update(to, tokenId, msg.sender);
+        _update(to, tokenId, address(0));
         $.enforcerUpdate = false;
 
         emit ForcedTransfer(from, to, tokenId);
@@ -120,6 +123,18 @@ abstract contract ERC7943NonFungibleUpgradeable is
         return _getERC7943NonFungibleStorage().frozen[tokenId];
     }
 
+    /// @inheritdoc ERC721Upgradeable
+    function transferFrom(address from, address to, uint256 tokenId) public virtual override {
+        address owner = _ownerOf(tokenId);
+        if (owner == address(0)) {
+            revert ERC721NonexistentToken(tokenId);
+        }
+        if (owner != from) {
+            revert ERC721IncorrectOwner(from, tokenId, owner);
+        }
+        super.transferFrom(from, to, tokenId);
+    }
+
     /// @inheritdoc IERC7943NonFungible
     function canTransfer(address from, address to, uint256 tokenId) public view virtual returns (bool) {
         if (!canSend(from) || !canReceive(to)) {
@@ -150,6 +165,9 @@ abstract contract ERC7943NonFungibleUpgradeable is
                 if ($.frozen[tokenId]) {
                     revert ERC7943InsufficientUnfrozenBalance(from, tokenId);
                 }
+                if (!canTransfer(from, address(0), tokenId)) {
+                    revert ERC7943CannotTransfer(from, address(0), tokenId);
+                }
             } else if (from != address(0) && to != address(0)) {
                 if ($.frozen[tokenId]) {
                     revert ERC7943InsufficientUnfrozenBalance(from, tokenId);
@@ -172,10 +190,7 @@ abstract contract ERC7943NonFungibleUpgradeable is
     }
 
     function _erc7943Mint(address to, uint256 tokenId) internal virtual {
-        ERC7943NonFungibleStorage storage $ = _getERC7943NonFungibleStorage();
-        $.enforcerUpdate = true;
-        _update(to, tokenId, address(0));
-        $.enforcerUpdate = false;
+        _safeMint(to, tokenId);
     }
 
     function _erc7943EnforcerBurn(uint256 tokenId) internal virtual {
