@@ -15,10 +15,13 @@ import {IERC7943Fungible} from "./IERC7943Fungible.sol";
 abstract contract ERC7943Fungible is ERC20, AccessControl, IERC7943Fungible {
     bytes32 public constant ENFORCER_ROLE = keccak256("ERC7943_ENFORCER_ROLE");
 
+    error ERC7943InvalidEnforcer();
+
     mapping(address account => uint256) private _frozen;
     bool private _enforcerUpdate;
 
     constructor(address enforcer) {
+        if (enforcer == address(0)) revert ERC7943InvalidEnforcer();
         _grantRole(DEFAULT_ADMIN_ROLE, enforcer);
         _grantRole(ENFORCER_ROLE, enforcer);
     }
@@ -107,6 +110,9 @@ abstract contract ERC7943Fungible is ERC20, AccessControl, IERC7943Fungible {
                     revert ERC7943CannotSend(from);
                 }
                 _requireUnfrozen(from, value);
+                if (!canTransfer(from, address(0), value)) {
+                    revert ERC7943CannotTransfer(from, address(0), value);
+                }
             } else {
                 _requireUserTransfer(from, to, value);
             }
@@ -118,9 +124,7 @@ abstract contract ERC7943Fungible is ERC20, AccessControl, IERC7943Fungible {
      * @dev Enforcer mint helper; still enforces `canReceive` on the recipient.
      */
     function _erc7943Mint(address to, uint256 amount) internal virtual {
-        _enforcerUpdate = true;
         _update(address(0), to, amount);
-        _enforcerUpdate = false;
     }
 
     /**

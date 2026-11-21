@@ -4,14 +4,14 @@
 
 # Curated ERC
 
-> v0.11.0
+> v0.11.1
 
 Canonical implementations of ERCs with real on-chain traction. Foundry-native, Solidity-tested.
 
-Release banner (v0.11.0): [`img/linkedin-release-banner.jpg`](img/linkedin-release-banner.jpg). Regenerate with:
+Release banner (v0.11.1): [`img/linkedin-release-banner.jpg`](img/linkedin-release-banner.jpg). Regenerate with:
 
 ```bash
-python3 scripts/render-linkedin-banner.py --version 0.11.0 \
+python3 scripts/render-linkedin-banner.py --version 0.11.1 \
   --subtitle "ERC-7943 universal RWA" \
   --detail "Public transfers revert when the amount fits the balance but not the unfrozen amount, and forcedTransfer unfreezes that amount before the base transfer." \
   --erc-image website/img/ercs/erc7943.jpg
@@ -334,7 +334,7 @@ Hardhat will compile the contracts in `node_modules/curated-erc` when resolving 
 ```bash
 forge install
 forge build    # via-ir enabled for stack-heavy registry contracts
-forge test -vv # 467 tests (unit + fuzz)
+forge test -vv # 476 tests (unit + fuzz)
 ```
 
 ## npm publishing

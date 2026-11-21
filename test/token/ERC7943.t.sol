@@ -11,6 +11,8 @@ import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC1155} from "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {IERC1155Receiver} from "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
 import {IERC721Receiver} from "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import {IERC721Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
+import {IERC1155Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 import {ERC7943Fungible} from "../../src/token/ERC7943/ERC7943Fungible.sol";
 import {ERC7943FungibleUpgradeable} from "../../src/token/ERC7943/ERC7943FungibleUpgradeable.sol";
 import {ERC7943NonFungible} from "../../src/token/ERC7943/ERC7943NonFungible.sol";
@@ -26,9 +28,12 @@ bytes4 constant IF_FUNGIBLE = 0x3edbb4c4;
 bytes4 constant IF_NFT = 0xbf1ef5fe;
 bytes4 constant IF_MULTI = 0x41c4fbad;
 
+contract ERC7943NoReceiver {}
+
 contract ERC7943FungibleHarness is ERC7943Fungible {
     mapping(address => bool) internal blockedSend;
     mapping(address => bool) internal blockedReceive;
+    bool internal blockCanTransfer;
 
     constructor(address enforcer) ERC20("URWA", "URWA") ERC7943Fungible(enforcer) {}
 
@@ -40,6 +45,10 @@ contract ERC7943FungibleHarness is ERC7943Fungible {
         blockedReceive[account] = blocked;
     }
 
+    function setBlockCanTransfer(bool blocked) external {
+        blockCanTransfer = blocked;
+    }
+
     function canSend(address account) public view override returns (bool) {
         return !blockedSend[account];
     }
@@ -48,11 +57,17 @@ contract ERC7943FungibleHarness is ERC7943Fungible {
         return !blockedReceive[account];
     }
 
+    function canTransfer(address from, address to, uint256 amount) public view override returns (bool) {
+        if (blockCanTransfer) return false;
+        return super.canTransfer(from, to, amount);
+    }
+
     function mint(address to, uint256 amount) external onlyRole(ENFORCER_ROLE) {
-        if (!canReceive(to)) {
-            revert ERC7943CannotReceive(to);
-        }
         _erc7943Mint(to, amount);
+    }
+
+    function userBurn(uint256 amount) external {
+        _burn(_msgSender(), amount);
     }
 
     function enforcerBurn(address from, uint256 amount) external onlyRole(ENFORCER_ROLE) {
@@ -63,8 +78,10 @@ contract ERC7943FungibleHarness is ERC7943Fungible {
 contract ERC7943FungibleUpgradeableHarness is ERC7943FungibleUpgradeable {
     mapping(address => bool) internal blockedSend;
     mapping(address => bool) internal blockedReceive;
+    bool internal blockCanTransfer;
 
     function initialize(address enforcer) external initializer {
+        __ERC20_init("URWA", "URWA");
         __ERC7943Fungible_init(enforcer);
     }
 
@@ -76,6 +93,10 @@ contract ERC7943FungibleUpgradeableHarness is ERC7943FungibleUpgradeable {
         blockedReceive[account] = blocked;
     }
 
+    function setBlockCanTransfer(bool blocked) external {
+        blockCanTransfer = blocked;
+    }
+
     function canSend(address account) public view override returns (bool) {
         return !blockedSend[account];
     }
@@ -84,15 +105,28 @@ contract ERC7943FungibleUpgradeableHarness is ERC7943FungibleUpgradeable {
         return !blockedReceive[account];
     }
 
+    function canTransfer(address from, address to, uint256 amount) public view override returns (bool) {
+        if (blockCanTransfer) return false;
+        return super.canTransfer(from, to, amount);
+    }
+
     function mint(address to, uint256 amount) external onlyRole(ENFORCER_ROLE) {
-        if (!canReceive(to)) {
-            revert ERC7943CannotReceive(to);
-        }
         _erc7943Mint(to, amount);
+    }
+
+    function userBurn(uint256 amount) external {
+        _burn(_msgSender(), amount);
     }
 
     function enforcerBurn(address from, uint256 amount) external onlyRole(ENFORCER_ROLE) {
         _erc7943EnforcerBurn(from, amount);
+    }
+}
+
+contract ERC7943FungibleNamedUpgradeableHarness is ERC7943FungibleUpgradeable {
+    function initialize(address enforcer) external initializer {
+        __ERC20_init("RWA", "RWA");
+        __ERC7943Fungible_init(enforcer);
     }
 }
 
@@ -105,6 +139,7 @@ contract ERC7943NFTReceiver is IERC721Receiver {
 contract ERC7943NonFungibleHarness is ERC7943NonFungible {
     mapping(address => bool) internal blockedSend;
     mapping(address => bool) internal blockedReceive;
+    bool internal blockCanTransfer;
 
     constructor(address enforcer) ERC721("URWA", "URWA") ERC7943NonFungible(enforcer) {}
 
@@ -124,11 +159,21 @@ contract ERC7943NonFungibleHarness is ERC7943NonFungible {
         return !blockedReceive[account];
     }
 
+    function setBlockCanTransfer(bool blocked) external {
+        blockCanTransfer = blocked;
+    }
+
+    function canTransfer(address from, address to, uint256 tokenId) public view override returns (bool) {
+        if (blockCanTransfer) return false;
+        return super.canTransfer(from, to, tokenId);
+    }
+
     function mint(address to, uint256 tokenId) external onlyRole(ENFORCER_ROLE) {
-        if (!canReceive(to)) {
-            revert ERC7943CannotReceive(to);
-        }
         _erc7943Mint(to, tokenId);
+    }
+
+    function userBurn(uint256 tokenId) external {
+        _burn(tokenId);
     }
 
     function enforcerBurn(uint256 tokenId) external onlyRole(ENFORCER_ROLE) {
@@ -139,8 +184,10 @@ contract ERC7943NonFungibleHarness is ERC7943NonFungible {
 contract ERC7943NonFungibleUpgradeableHarness is ERC7943NonFungibleUpgradeable {
     mapping(address => bool) internal blockedSend;
     mapping(address => bool) internal blockedReceive;
+    bool internal blockCanTransfer;
 
     function initialize(address enforcer) external initializer {
+        __ERC721_init("URWA", "URWA");
         __ERC7943NonFungible_init(enforcer);
     }
 
@@ -160,11 +207,21 @@ contract ERC7943NonFungibleUpgradeableHarness is ERC7943NonFungibleUpgradeable {
         return !blockedReceive[account];
     }
 
+    function setBlockCanTransfer(bool blocked) external {
+        blockCanTransfer = blocked;
+    }
+
+    function canTransfer(address from, address to, uint256 tokenId) public view override returns (bool) {
+        if (blockCanTransfer) return false;
+        return super.canTransfer(from, to, tokenId);
+    }
+
     function mint(address to, uint256 tokenId) external onlyRole(ENFORCER_ROLE) {
-        if (!canReceive(to)) {
-            revert ERC7943CannotReceive(to);
-        }
         _erc7943Mint(to, tokenId);
+    }
+
+    function userBurn(uint256 tokenId) external {
+        _burn(tokenId);
     }
 
     function enforcerBurn(uint256 tokenId) external onlyRole(ENFORCER_ROLE) {
@@ -175,6 +232,7 @@ contract ERC7943NonFungibleUpgradeableHarness is ERC7943NonFungibleUpgradeable {
 contract ERC7943MultiTokenHarness is ERC7943MultiToken {
     mapping(address => bool) internal blockedSend;
     mapping(address => bool) internal blockedReceive;
+    bool internal blockCanTransfer;
 
     constructor(address enforcer) ERC7943MultiToken(enforcer, "uri") {}
 
@@ -194,11 +252,26 @@ contract ERC7943MultiTokenHarness is ERC7943MultiToken {
         return !blockedReceive[account];
     }
 
+    function setBlockCanTransfer(bool blocked) external {
+        blockCanTransfer = blocked;
+    }
+
+    function canTransfer(address from, address to, uint256 tokenId, uint256 amount)
+        public
+        view
+        override
+        returns (bool)
+    {
+        if (blockCanTransfer) return false;
+        return super.canTransfer(from, to, tokenId, amount);
+    }
+
     function mint(address to, uint256 tokenId, uint256 amount) external onlyRole(ENFORCER_ROLE) {
-        if (!canReceive(to)) {
-            revert ERC7943CannotReceive(to);
-        }
         _erc7943Mint(to, tokenId, amount);
+    }
+
+    function userBurn(uint256 tokenId, uint256 amount) external {
+        _burn(_msgSender(), tokenId, amount);
     }
 
     function enforcerBurn(address from, uint256 tokenId, uint256 amount) external onlyRole(ENFORCER_ROLE) {
@@ -209,6 +282,7 @@ contract ERC7943MultiTokenHarness is ERC7943MultiToken {
 contract ERC7943MultiTokenUpgradeableHarness is ERC7943MultiTokenUpgradeable {
     mapping(address => bool) internal blockedSend;
     mapping(address => bool) internal blockedReceive;
+    bool internal blockCanTransfer;
 
     function initialize(address enforcer) external initializer {
         __ERC7943MultiToken_init(enforcer, "uri");
@@ -230,11 +304,26 @@ contract ERC7943MultiTokenUpgradeableHarness is ERC7943MultiTokenUpgradeable {
         return !blockedReceive[account];
     }
 
+    function setBlockCanTransfer(bool blocked) external {
+        blockCanTransfer = blocked;
+    }
+
+    function canTransfer(address from, address to, uint256 tokenId, uint256 amount)
+        public
+        view
+        override
+        returns (bool)
+    {
+        if (blockCanTransfer) return false;
+        return super.canTransfer(from, to, tokenId, amount);
+    }
+
     function mint(address to, uint256 tokenId, uint256 amount) external onlyRole(ENFORCER_ROLE) {
-        if (!canReceive(to)) {
-            revert ERC7943CannotReceive(to);
-        }
         _erc7943Mint(to, tokenId, amount);
+    }
+
+    function userBurn(uint256 tokenId, uint256 amount) external {
+        _burn(_msgSender(), tokenId, amount);
     }
 
     function enforcerBurn(address from, uint256 tokenId, uint256 amount) external onlyRole(ENFORCER_ROLE) {
@@ -498,5 +587,130 @@ contract ERC7943Test is Test {
         vm.prank(enforcer);
         fungibleProxy.forcedTransfer(alice, bob, 100);
         assertEq(fungibleProxy.balanceOf(bob), 100);
+    }
+
+    function test_nft_forcedTransfer_withoutApproval() public {
+        vm.prank(enforcer);
+        nft.setFrozenTokens(alice, ID, true);
+
+        vm.prank(enforcer);
+        assertTrue(nft.forcedTransfer(alice, bob, ID));
+        assertEq(nft.ownerOf(ID), bob);
+        assertFalse(nft.getFrozenTokens(alice, ID));
+
+        vm.prank(enforcer);
+        nftProxy.setFrozenTokens(alice, ID, true);
+        vm.prank(enforcer);
+        assertTrue(nftProxy.forcedTransfer(alice, bob, ID));
+        assertEq(nftProxy.ownerOf(ID), bob);
+        assertFalse(nftProxy.getFrozenTokens(alice, ID));
+    }
+
+    function test_multi_batch_duplicateId_respectsUnfrozen() public {
+        vm.startPrank(enforcer);
+        multi.setFrozenTokens(alice, ID, 950);
+        multiProxy.setFrozenTokens(alice, ID, 950);
+        vm.stopPrank();
+
+        uint256[] memory ids = new uint256[](2);
+        uint256[] memory amounts = new uint256[](2);
+        ids[0] = ID;
+        ids[1] = ID;
+        amounts[0] = 40;
+        amounts[1] = 40;
+
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(IERC7943MultiToken.ERC7943InsufficientUnfrozenBalance.selector, alice, ID, 80, 50)
+        );
+        multi.safeBatchTransferFrom(alice, bob, ids, amounts, "");
+
+        assertEq(multi.balanceOf(alice, ID), 1_000);
+        assertEq(multi.getFrozenTokens(alice, ID), 950);
+
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(IERC7943MultiToken.ERC7943InsufficientUnfrozenBalance.selector, alice, ID, 80, 50)
+        );
+        multiProxy.safeBatchTransferFrom(alice, bob, ids, amounts, "");
+
+        assertEq(multiProxy.balanceOf(alice, ID), 1_000);
+        assertEq(multiProxy.getFrozenTokens(alice, ID), 950);
+    }
+
+    function test_mint_toContractWithoutReceiver_reverts() public {
+        ERC7943NoReceiver noRecv = new ERC7943NoReceiver();
+
+        vm.prank(enforcer);
+        vm.expectRevert(abi.encodeWithSelector(IERC721Errors.ERC721InvalidReceiver.selector, address(noRecv)));
+        nft.mint(address(noRecv), 99);
+        assertEq(nft.ownerOf(ID), alice);
+
+        vm.prank(enforcer);
+        vm.expectRevert(abi.encodeWithSelector(IERC1155Errors.ERC1155InvalidReceiver.selector, address(noRecv)));
+        multi.mint(address(noRecv), 99, 1);
+        assertEq(multi.balanceOf(alice, ID), 1_000);
+    }
+
+    function test_userBurn_respectsCanTransferOverride() public {
+        fungible.setBlockCanTransfer(true);
+        vm.prank(alice);
+        vm.expectRevert(abi.encodeWithSelector(IERC7943Fungible.ERC7943CannotTransfer.selector, alice, address(0), 100));
+        fungible.userBurn(100);
+        vm.prank(enforcer);
+        fungible.enforcerBurn(alice, 100);
+        assertEq(fungible.balanceOf(alice), 900);
+
+        nft.setBlockCanTransfer(true);
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(IERC7943NonFungible.ERC7943CannotTransfer.selector, alice, address(0), ID)
+        );
+        nft.userBurn(ID);
+        vm.prank(enforcer);
+        nft.enforcerBurn(ID);
+        vm.expectRevert(abi.encodeWithSelector(IERC721Errors.ERC721NonexistentToken.selector, ID));
+        nft.ownerOf(ID);
+
+        multi.setBlockCanTransfer(true);
+        vm.prank(alice);
+        vm.expectRevert(
+            abi.encodeWithSelector(IERC7943MultiToken.ERC7943CannotTransfer.selector, alice, address(0), ID, 100)
+        );
+        multi.userBurn(ID, 100);
+        vm.prank(enforcer);
+        multi.enforcerBurn(alice, ID, 100);
+        assertEq(multi.balanceOf(alice, ID), 900);
+    }
+
+    function test_init_keepsNameSetBeforeParentInit() public {
+        ERC7943FungibleNamedUpgradeableHarness impl = new ERC7943FungibleNamedUpgradeableHarness();
+        ERC7943FungibleNamedUpgradeableHarness named = ERC7943FungibleNamedUpgradeableHarness(
+            address(
+                new ERC1967Proxy(
+                    address(impl), abi.encodeCall(ERC7943FungibleNamedUpgradeableHarness.initialize, (enforcer))
+                )
+            )
+        );
+        assertEq(named.name(), "RWA");
+    }
+
+    function test_transferFrom_wrongFrom_frozen_usesOwnerError() public {
+        vm.prank(enforcer);
+        nft.setFrozenTokens(alice, ID, true);
+        assertTrue(nft.canTransfer(carol, bob, ID));
+
+        vm.prank(carol);
+        vm.expectRevert(abi.encodeWithSelector(IERC721Errors.ERC721IncorrectOwner.selector, carol, ID, alice));
+        nft.transferFrom(carol, bob, ID);
+    }
+
+    function test_zeroEnforcer_reverts() public {
+        vm.expectRevert(ERC7943Fungible.ERC7943InvalidEnforcer.selector);
+        new ERC7943FungibleHarness(address(0));
+
+        ERC7943FungibleUpgradeableHarness impl = new ERC7943FungibleUpgradeableHarness();
+        vm.expectRevert(ERC7943FungibleUpgradeable.ERC7943InvalidEnforcer.selector);
+        new ERC1967Proxy(address(impl), abi.encodeCall(ERC7943FungibleUpgradeableHarness.initialize, (address(0))));
     }
 }

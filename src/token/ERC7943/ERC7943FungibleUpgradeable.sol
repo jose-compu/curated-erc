@@ -19,6 +19,8 @@ abstract contract ERC7943FungibleUpgradeable is
 {
     bytes32 public constant ENFORCER_ROLE = keccak256("ERC7943_ENFORCER_ROLE");
 
+    error ERC7943InvalidEnforcer();
+
     /// @custom:storage-location erc7201:curatedcontracts.storage.ERC7943Fungible
     struct ERC7943FungibleStorage {
         mapping(address account => uint256) frozen;
@@ -39,13 +41,14 @@ abstract contract ERC7943FungibleUpgradeable is
         _disableInitializers();
     }
 
+    /// @dev The child must call `__ERC20_init` (or equivalent) before this initializer.
     function __ERC7943Fungible_init(address enforcer) internal onlyInitializing {
-        __ERC20_init("", "");
         __AccessControl_init();
         __ERC7943Fungible_init_unchained(enforcer);
     }
 
     function __ERC7943Fungible_init_unchained(address enforcer) internal onlyInitializing {
+        if (enforcer == address(0)) revert ERC7943InvalidEnforcer();
         _grantRole(DEFAULT_ADMIN_ROLE, enforcer);
         _grantRole(ENFORCER_ROLE, enforcer);
     }
@@ -139,6 +142,9 @@ abstract contract ERC7943FungibleUpgradeable is
                     revert ERC7943CannotSend(from);
                 }
                 _requireUnfrozen(from, value);
+                if (!canTransfer(from, address(0), value)) {
+                    revert ERC7943CannotTransfer(from, address(0), value);
+                }
             } else {
                 _requireUserTransfer(from, to, value);
             }
@@ -147,10 +153,7 @@ abstract contract ERC7943FungibleUpgradeable is
     }
 
     function _erc7943Mint(address to, uint256 amount) internal virtual {
-        ERC7943FungibleStorage storage $ = _getERC7943FungibleStorage();
-        $.enforcerUpdate = true;
         _update(address(0), to, amount);
-        $.enforcerUpdate = false;
     }
 
     function _erc7943EnforcerBurn(address from, uint256 amount) internal virtual {

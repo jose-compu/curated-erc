@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Test} from "forge-std/Test.sol";
+import {Test, stdError} from "forge-std/Test.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/IERC165.sol";
 import {ERC6909} from "../../src/token/ERC6909/ERC6909.sol";
@@ -233,5 +233,29 @@ contract ERC6909Test is Test {
 
         uint256 sumAfter = token.balanceOf(alice, ID_A) + token.balanceOf(bob, ID_A);
         assertEq(sumAfter, sumBefore);
+    }
+
+    function test_mint_nearMax_reverts() public {
+        token.mint(alice, ID_A, type(uint256).max);
+        vm.expectRevert(stdError.arithmeticError);
+        token.mint(alice, ID_A, 1);
+
+        proxyToken.mint(alice, ID_A, type(uint256).max);
+        vm.expectRevert(stdError.arithmeticError);
+        proxyToken.mint(alice, ID_A, 1);
+    }
+
+    function test_transfer_recipientNearMax_reverts() public {
+        token.mint(alice, ID_A, type(uint256).max - 1);
+        token.mint(bob, ID_A, 2);
+        vm.prank(bob);
+        vm.expectRevert(stdError.arithmeticError);
+        token.transfer(alice, ID_A, 2);
+
+        proxyToken.mint(alice, ID_A, type(uint256).max - 1);
+        proxyToken.mint(bob, ID_A, 2);
+        vm.prank(bob);
+        vm.expectRevert(stdError.arithmeticError);
+        proxyToken.transfer(alice, ID_A, 2);
     }
 }

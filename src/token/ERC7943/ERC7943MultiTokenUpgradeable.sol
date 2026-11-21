@@ -19,6 +19,8 @@ abstract contract ERC7943MultiTokenUpgradeable is
 {
     bytes32 public constant ENFORCER_ROLE = keccak256("ERC7943_ENFORCER_ROLE");
 
+    error ERC7943InvalidEnforcer();
+
     /// @custom:storage-location erc7201:curatedcontracts.storage.ERC7943MultiToken
     struct ERC7943MultiTokenStorage {
         mapping(address account => mapping(uint256 id => uint256)) frozen;
@@ -46,6 +48,7 @@ abstract contract ERC7943MultiTokenUpgradeable is
     }
 
     function __ERC7943MultiToken_init_unchained(address enforcer) internal onlyInitializing {
+        if (enforcer == address(0)) revert ERC7943InvalidEnforcer();
         _grantRole(DEFAULT_ADMIN_ROLE, enforcer);
         _grantRole(ENFORCER_ROLE, enforcer);
     }
@@ -148,7 +151,22 @@ abstract contract ERC7943MultiTokenUpgradeable is
         if (!$.enforcerUpdate) {
             for (uint256 i = 0; i < ids.length; ++i) {
                 uint256 id = ids[i];
-                uint256 value = values[i];
+                bool firstSighting = true;
+                for (uint256 k = 0; k < i; ++k) {
+                    if (ids[k] == id) {
+                        firstSighting = false;
+                        break;
+                    }
+                }
+                if (!firstSighting) continue;
+
+                uint256 summed = 0;
+                for (uint256 j = 0; j < ids.length; ++j) {
+                    if (ids[j] == id) {
+                        summed += values[j];
+                    }
+                }
+
                 if (from == address(0)) {
                     if (!canReceive(to)) {
                         revert ERC7943CannotReceive(to);
@@ -157,9 +175,12 @@ abstract contract ERC7943MultiTokenUpgradeable is
                     if (!canSend(from)) {
                         revert ERC7943CannotSend(from);
                     }
-                    _requireUnfrozen(from, id, value);
+                    _requireUnfrozen(from, id, summed);
+                    if (!canTransfer(from, address(0), id, summed)) {
+                        revert ERC7943CannotTransfer(from, address(0), id, summed);
+                    }
                 } else {
-                    _requireUserTransfer(from, to, id, value);
+                    _requireUserTransfer(from, to, id, summed);
                 }
             }
         }
@@ -167,14 +188,7 @@ abstract contract ERC7943MultiTokenUpgradeable is
     }
 
     function _erc7943Mint(address to, uint256 tokenId, uint256 amount) internal virtual {
-        ERC7943MultiTokenStorage storage $ = _getERC7943MultiTokenStorage();
-        uint256[] memory ids = new uint256[](1);
-        uint256[] memory values = new uint256[](1);
-        ids[0] = tokenId;
-        values[0] = amount;
-        $.enforcerUpdate = true;
-        _update(address(0), to, ids, values);
-        $.enforcerUpdate = false;
+        _mint(to, tokenId, amount, "");
     }
 
     function _erc7943EnforcerBurn(address from, uint256 tokenId, uint256 amount) internal virtual {

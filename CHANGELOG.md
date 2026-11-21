@@ -6,6 +6,13 @@
 
 - **npm** — Trusted Publishing via `.github/workflows/publish.yml`: tag push `v*.*.*`; `workflow_dispatch` with `tag` input; merge-to-`main` trigger when [`.github/npm-publish-tag`](.github/npm-publish-tag) changes (legacy tags: checkout tag + overlay tooling from `main`).
 
+## [0.11.1] — 2026-11-21
+
+### Security
+
+- **ERC-7943** — NFT seizure (`forcedTransfer`) authorization; ERC-1155 batch duplicate-id freeze aggregation; mint receiver checks; permissionless burn `canTransfer` enforcement; NFT `transferFrom` owner error precedence; reject zero-address enforcer ([#audit](docs/audits/2026-11-21-recent-additions.md))
+- **ERC-6909** — checked arithmetic on mint and transfer credits to prevent balance wrap
+
 ## [0.11.0] — 2026-11-21
 
 ### Added
