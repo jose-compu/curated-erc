@@ -42,6 +42,19 @@ export const CATALOG = [
     palette: ["#dff3f0", "#6bb8a8", "#2d6b5e", "#0f2e28"],
   },
   {
+    id: "erc5006",
+    number: 5006,
+    name: "Rental NFT (ERC-1155)",
+    category: "Token salon",
+    wing: "token",
+    tagline: "Escrowed use",
+    description:
+      "Time-limited user records on ERC-1155. createUserRecord escrows the amount until the owner or operator deletes it, and usableBalanceOf drops once the expiry timestamp has passed.",
+    path: "token/ERC5006/ERC5006",
+    eip: "https://eips.ethereum.org/EIPS/eip-5006",
+    palette: ["#f3efe4", "#c4a46a", "#3d6b66", "#1c2422"],
+  },
+  {
     id: "erc4906",
     number: 4906,
     name: "Metadata Update",
