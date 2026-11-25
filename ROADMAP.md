@@ -42,7 +42,7 @@ Status is refreshed against **Final** ERCs with 2026 on-chain / protocol tractio
 | 4626 | Tokenized Vaults | ✅ Done |
 | 7540 | Async ERC-4626 Vaults | 🔲 [#25](https://github.com/jose-compu/curated-erc/issues/25) |
 | 7575 | Multi-Asset ERC-4626 Vaults | 🔲 [#25](https://github.com/jose-compu/curated-erc/issues/25) |
-| 5006 | Rental NFT (ERC-1155) | 🔲 [#32](https://github.com/jose-compu/curated-erc/issues/32) |
+| 5006 | Rental NFT (ERC-1155) | ✅ Done (v0.12.0) |
 | 3668 | CCIP Read (Offchain Data) | 🔲 [#26](https://github.com/jose-compu/curated-erc/issues/26) |
 | 6909 | Minimal Multi-Token Interface | ✅ Done (v0.10.0) |
 | 5267 | EIP-712 Domain Retrieval | ✅ Done (v0.8.0) |
@@ -95,7 +95,9 @@ Queued so the next tags do not require another brainstorm. Existing issues stay 
 
 **v0.11.0** — ERC-7943 universal RWA interface shipped ([#40](https://github.com/jose-compu/curated-erc/issues/40)).
 
-**Next** — ERC-5006 ([#32](https://github.com/jose-compu/curated-erc/issues/32)).
+**v0.12.0** — ERC-5006 rental NFT for ERC-1155 shipped ([#32](https://github.com/jose-compu/curated-erc/issues/32)).
+
+**Next** — ERC-3668 ([#26](https://github.com/jose-compu/curated-erc/issues/26)).
 
 **v1.0.0** — SECURITY.md ([#12](https://github.com/jose-compu/curated-erc/issues/12)), token invariants ([#8](https://github.com/jose-compu/curated-erc/issues/8)), upgrade lifecycle tests ([#15](https://github.com/jose-compu/curated-erc/issues/15)).
 

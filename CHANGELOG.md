@@ -6,6 +6,12 @@
 
 - **npm** — Trusted Publishing via `.github/workflows/publish.yml`: tag push `v*.*.*`; `workflow_dispatch` with `tag` input; merge-to-`main` trigger when [`.github/npm-publish-tag`](.github/npm-publish-tag) changes (legacy tags: checkout tag + overlay tooling from `main`).
 
+## [0.12.0] — 2026-11-25
+
+### Added
+
+- **ERC-5006** — Rental NFT for ERC-1155: `IERC5006`, `ERC5006`, and `ERC5006Upgradeable` with escrowed user records, `usableBalanceOf` / `frozenBalanceOf`, and ERC-7201 storage (closes [#32](https://github.com/jose-compu/curated-erc/issues/32))
+
 ## [0.11.1] — 2026-11-21
 
 ### Security

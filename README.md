@@ -4,17 +4,17 @@
 
 # Curated ERC
 
-> v0.11.1
+> v0.12.0
 
 Canonical implementations of ERCs with real on-chain traction. Foundry-native, Solidity-tested.
 
-Release banner (v0.11.1): [`img/linkedin-release-banner.jpg`](img/linkedin-release-banner.jpg). Regenerate with:
+Release banner (v0.12.0): [`img/linkedin-release-banner.jpg`](img/linkedin-release-banner.jpg). Regenerate with:
 
 ```bash
-python3 scripts/render-linkedin-banner.py --version 0.11.1 \
-  --subtitle "ERC-7943 universal RWA" \
-  --detail "Public transfers revert when the amount fits the balance but not the unfrozen amount, and forcedTransfer unfreezes that amount before the base transfer." \
-  --erc-image website/img/ercs/erc7943.jpg
+python3 scripts/render-linkedin-banner.py --version 0.12.0 \
+  --subtitle "ERC-5006 rental NFT" \
+  --detail "createUserRecord escrows the amount in the contract, and frozenBalanceOf keeps that amount after expiry until deleteUserRecord." \
+  --erc-image website/img/ercs/erc5006.jpg
 ```
 
 Optional `--detail` adds a short improvement line under the subtitle (up to 3 lines; full text required). For releases that add a **new ERC**, pass `--erc-image website/img/ercs/<id>.jpg` so the left panel shows that ERC’s surrealist painting in a thin frame instead of the large logo, with a small Curated ERC mark in the top-right. Without `--erc-image`, the banner stays unchanged (large logo on the left). Lining figures via `+lnum` when libraqm is available, else `GFSDidot-Regular.ttf` for lines with digits.
@@ -39,6 +39,7 @@ Curated ERC Contracts fills that gap.
 | 1363 | Payable Token | Token (ERC-20 extension) |
 | 5192 | Minimal Soulbound NFT | Token (ERC-721 extension) |
 | 4907 | Rental NFT | Token (ERC-721 extension) |
+| 5006 | Rental NFT (ERC-1155) | Token (ERC-1155 extension) |
 | 4906 | Metadata Update Extension | Token (ERC-721 extension) |
 | 5484 | Consensual Soulbound Tokens | Token (ERC-721 extension) |
 | 2309 | Consecutive Transfer (Batch Mint) | Token (ERC-721 extension) |
@@ -59,7 +60,7 @@ Curated ERC Contracts fills that gap.
 | 7818 | Expirable ERC-20 | Token (ERC-20 extension) |
 | 8004 | Trustless Agents | AI Agents (identity, reputation, validation) |
 
-22 standards implemented (non-upgradeable + upgradeable where applicable). Full plan across 40+ ERCs in [ROADMAP.md](./ROADMAP.md). Release history in [CHANGELOG.md](./CHANGELOG.md).
+23 standards implemented (non-upgradeable + upgradeable where applicable). Full plan across 40+ ERCs in [ROADMAP.md](./ROADMAP.md). Release history in [CHANGELOG.md](./CHANGELOG.md).
 
 ## Structure
 
@@ -73,6 +74,7 @@ src/
 │   ├── ERC6909/          # Minimal Multi-Token Interface
 │   ├── ERC7943/          # Universal RWA Interface (freeze & seizure)
 │   ├── ERC4907/          # Rental NFT (user/owner split with expiry)
+│   ├── ERC5006/          # Rental NFT for ERC-1155 (escrowed user records)
 │   ├── ERC5192/          # Soulbound NFT (non-transferable)
 │   ├── ERC5484/          # Consensual Soulbound Tokens (burn authorization)
 │   └── ERC7818/          # Expirable ERC-20 (epoch-based expiry)
@@ -268,6 +270,16 @@ contract MyRwa is ERC7943Fungible {
 }
 ```
 
+**ERC-5006 (Rental NFT, ERC-1155)** — escrowed user right until the owner deletes the record:
+
+```solidity
+import {ERC5006} from "curated-erc/token/ERC5006/ERC5006.sol";
+
+contract MyRental is ERC5006 {
+    constructor() ERC1155("ipfs://item") ERC5006(16) {}
+}
+```
+
 ### Hardhat
 
 The recommended path is the [`@nomicfoundation/hardhat-foundry`](https://hardhat.org/hardhat-runner/plugins/nomicfoundation-hardhat-foundry) plugin, which lets Hardhat read `remappings.txt` and resolve imports from the `lib/` folder directly — no duplicate OpenZeppelin installs.
@@ -334,7 +346,7 @@ Hardhat will compile the contracts in `node_modules/curated-erc` when resolving 
 ```bash
 forge install
 forge build    # via-ir enabled for stack-heavy registry contracts
-forge test -vv # 476 tests (unit + fuzz)
+forge test -vv # 501 tests (unit + fuzz)
 ```
 
 ## npm publishing
